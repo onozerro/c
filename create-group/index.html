@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Create A Group - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap corvixz-white-page">
+                    <div class="create-group-container">
+                        <div class="row">
+                            <div class="col-12 col-lg-8">
+                                <h2>Create A Group</h2>
+                                <p id="createGroupError" class="text-danger mb-2" style="display:none;"></p>
+                                <p class="ms-4 fw-600">Name:</p>
+                                <input type="text" id="groupNameInput" class="corvixz-field-input" maxlength="50" autocomplete="off"/>
+                                <p class="ms-4 fw-600 mt-4">Description:</p>
+                                <textarea id="groupDescInput" class="corvixz-field-input" rows="16" autocomplete="off"></textarea>
+                                <p class="ms-4 fw-600 mt-4">Emblem:</p>
+                                <input type="file" id="groupEmblemInput" accept="image/*"/>
+                                <p class="mt-3" id="createGroupCostText"></p>
+                                <div class="mt-4">
+                                    <button type="button" class="corvixz-play-btn buyButton-0-2-24 dev-create-btn" id="purchaseGroupBtn" onclick="purchaseGroup()">Purchase</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    document.getElementById('createGroupCostText').innerHTML =
+        'Creating a group costs ' + robuxHtml(100, 12) + '. By clicking Purchase, your account will be charged ' + robuxHtml(100, 12) + '.';
+
+    async function purchaseGroup() {
+        var name = document.getElementById('groupNameInput').value.trim();
+        var desc = document.getElementById('groupDescInput').value.trim();
+        var err = document.getElementById('createGroupError');
+        var btn = document.getElementById('purchaseGroupBtn');
+        if (!name) { err.textContent = 'Group name is required.'; err.style.display = ''; return; }
+        err.style.display = 'none';
+        btn.disabled = true; btn.textContent = 'Processing...';
+        try {
+            var emblemUrl = '';
+            var file = document.getElementById('groupEmblemInput').files[0];
+            if (file) emblemUrl = await uploadGroupEmblem(file);
+            var id = await createGroup(name, desc, emblemUrl);
+            window.location.href = 'groups.html?gid=' + id;
+        } catch(e) {
+            err.textContent = e.message || 'Failed to create group.';
+            err.style.display = '';
+            btn.disabled = false; btn.textContent = 'Purchase';
+        }
+    }
+    </script>
+</body>
+</html>
+

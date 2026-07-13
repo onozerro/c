@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Group Admin - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap develop-page-wrap corvixz-white-page">
+                    <div class="developerContainer-2016 group-admin-container">
+                        <div id="groupAdminLoading" class="corvixz-empty">Loading...</div>
+                        <div id="groupAdminPanel" style="display:none;">
+                            <div class="row">
+                                <div class="col-12"><h2 class="group-admin-title" id="gaTitle">Group Admin</h2></div>
+                            </div>
+                            <p id="gaFeedback" class="text-danger" style="display:none;"></p>
+                            <div class="row group-admin-body">
+                                <div class="col-2">
+                                    <div class="dev-vertical-selector" id="gaTabs">
+                                        <a href="#" class="dev-selector-option selected" data-tab="members">Members</a>
+                                        <a href="#" class="dev-selector-option" data-tab="info">Group Info</a>
+                                        <a href="#" class="dev-selector-option" data-tab="settings">Settings</a>
+                                        <a href="#" class="dev-selector-option" data-tab="requests">Join Requests</a>
+                                        <a href="#" class="dev-selector-option" data-tab="revenue">Revenue</a>
+                                    </div>
+                                    <a href="/groups/" class="seeAllButton-0-2-20 ga-back-btn">Back To My Groups</a>
+                                </div>
+                                <div class="col-10" id="gaContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var gaGroupId = null;
+    var gaGroup = null;
+    var gaTab = 'members';
+    var gaMembers = [];
+
+    function esc(s) { var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+    function showGaErr(msg) {
+        var el = document.getElementById('gaFeedback');
+        if (el) { el.textContent = msg; el.style.display = msg ? '' : 'none'; }
+    }
+
+    function showGaTab(tab) {
+        gaTab = tab;
+        document.querySelectorAll('#gaTabs .dev-selector-option').forEach(function(a) {
+            a.classList.toggle('selected', a.getAttribute('data-tab') === tab);
+        });
+        renderGaTab();
+    }
+
+    document.querySelectorAll('#gaTabs .dev-selector-option').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            showGaTab(this.getAttribute('data-tab'));
+        });
+    });
+
+    async function renderGaTab() {
+        var el = document.getElementById('gaContent');
+        if (!el || !gaGroup) return;
+        showGaErr('');
+        if (gaTab === 'members') await renderGaMembers(el);
+        else if (gaTab === 'info') renderGaInfo(el);
+        else if (gaTab === 'settings') renderGaSettings(el);
+        else if (gaTab === 'requests') await renderGaRequests(el);
+        else if (gaTab === 'revenue') renderGaRevenue(el);
+    }
+
+    async function renderGaMembers(el) {
+        el.innerHTML = '<h3 class="ga-tab-heading">Members</h3><div id="gaMembersList">Loading...</div>';
+        gaMembers = await getGroupMembers(gaGroupId);
+        var html = '<div class="table-responsive mt-3"><table class="forum-table ga-members-table"><thead><tr><th>User</th><th>Rank</th><th>Actions</th></tr></thead><tbody>';
+        (gaMembers || []).forEach(function(m) {
+            var u = m.user || {};
+            var isOwner = gaGroup.owner_id === m.user_id;
+            html += '<tr><td><a href="/profile/' + (u.user_number||'') + '">' + esc(u.username||'User') + '</a></td>';
+            html += '<td>' + esc(m.rank_name || 'Member') + '</td><td>';
+            if (!isOwner) {
+                html += '<select class="form-select form-select-sm d-inline-block ga-rank-select" onchange="changeMemberRankGa(\'' + m.user_id + '\', this.value)">';
+                html += '<option value="">Change rank...</option><option value="Member:1">Member</option><option value="Admin:200">Admin</option>';
+                html += '</select> ';
+                html += '<button type="button" class="cancelButton-0-2-27 ga-kick-btn" onclick="kickMemberGa(\'' + m.user_id + '\')">Kick</button>';
+            } else {
+                html += '<span class="text-muted">Owner</span>';
+            }
+            html += '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+        document.getElementById('gaMembersList').innerHTML = html;
+    }
+
+    function renderGaInfo(el) {
+        el.innerHTML = '<h3 class="ga-tab-heading">Group Information</h3>' +
+            '<div class="row mt-3"><div class="col-4">' +
+            '<img class="groups-emblem-round" src="' + esc(gaGroup.emblem_url || 'images/logo/f.png') + '" alt=""/>' +
+            '<p class="fw-bold mt-3 mb-1">Emblem:</p><input type="file" id="gaEmblemFile" accept="image/*"/>' +
+            '</div><div class="col-8">' +
+            '<p class="fw-bold mb-1">Name:</p><input type="text" class="form-control" id="gaName" value="' + esc(gaGroup.name) + '" maxlength="50"/>' +
+            '<p class="fw-bold mt-3 mb-1">Description:</p>' +
+            '<textarea id="gaDesc" class="form-control" rows="12">' + esc(gaGroup.description || '') + '</textarea>' +
+            '</div></div>' +
+            '<div class="mt-4"><button type="button" class="buyButton-0-2-24" onclick="saveGaInfo()">Save</button></div>';
+    }
+
+    function renderGaSettings(el) {
+        el.innerHTML = '<h3 class="ga-tab-heading">Settings</h3>' +
+            '<p class="fw-bold mb-1 mt-3">Require Approval</p>' +
+            '<label class="d-block mb-1"><input type="radio" name="gaJoin" value="0"' + (!gaGroup.require_approval ? ' checked' : '') + '/> Anyone can join</label>' +
+            '<label class="d-block mb-3"><input type="radio" name="gaJoin" value="1"' + (gaGroup.require_approval ? ' checked' : '') + '/> Manual approval</label>' +
+            '<p class="fw-bold mb-1">Miscellaneous</p>' +
+            '<label class="d-block mb-1"><input type="checkbox" id="gaFundsPublic"' + (gaGroup.funds_public ? ' checked' : '') + '/> Group funds are publicly visible</label>' +
+            '<label class="d-block mb-1"><input type="checkbox" id="gaGamesVisible"' + (gaGroup.games_visible !== false ? ' checked' : '') + '/> Group games are visible on the group home page</label>' +
+            '<div class="mt-4"><button type="button" class="buyButton-0-2-24" onclick="saveGaSettings()">Save</button></div>';
+    }
+
+    async function renderGaRequests(el) {
+        el.innerHTML = '<h3 class="ga-tab-heading">Join Requests</h3><div id="gaReqList">Loading...</div>';
+        try {
+            var reqs = await getGroupJoinRequests(gaGroupId);
+            if (!reqs || !reqs.length) {
+                document.getElementById('gaReqList').innerHTML = '<p class="corvixz-empty mt-3">No pending requests.</p>';
+                return;
+            }
+            var html = '';
+            reqs.forEach(function(r) {
+                var u = r.user || {};
+                html += '<div class="ga-request-row">';
+                html += '<a href="/profile/' + (u.user_number||'') + '">' + esc(u.username||'User') + '</a> ';
+                html += '<button type="button" class="buyButton-0-2-24 ga-req-btn" onclick="approveReq(\'' + r.id + '\')">Accept</button> ';
+                html += '<button type="button" class="cancelButton-0-2-27 ga-req-btn" onclick="declineReq(\'' + r.id + '\')">Decline</button>';
+                html += '</div>';
+            });
+            document.getElementById('gaReqList').innerHTML = html;
+        } catch(e) {
+            document.getElementById('gaReqList').innerHTML = '<p class="text-danger">Run supabase-groups-comments.sql</p>';
+        }
+    }
+
+    function renderGaRevenue(el) {
+        el.innerHTML = '<h3 class="ga-tab-heading">Revenue</h3>' +
+            '<p class="mt-3">Group Funds: <strong>' + (gaGroup.funds || 0).toLocaleString() + '</strong> Ro-coin</p>' +
+            '<p class="text-muted">Payouts and revenue sharing coming soon.</p>';
+    }
+
+    async function saveGaInfo() {
+        showGaErr('');
+        var data = {
+            name: document.getElementById('gaName').value.trim(),
+            description: document.getElementById('gaDesc').value.trim(),
+            updated_at: new Date().toISOString()
+        };
+        if (!data.name) { showGaErr('Group name is required.'); return; }
+        var file = document.getElementById('gaEmblemFile').files[0];
+        if (file) data.emblem_url = await uploadGroupEmblem(file);
+        try {
+            await updateGroupInfo(gaGroupId, data);
+            gaGroup = await getGroup(gaGroupId);
+            showGaTab('info');
+        } catch(e) { showGaErr(e.message || 'Save failed.'); }
+    }
+
+    async function saveGaSettings() {
+        showGaErr('');
+        var joinVal = document.querySelector('input[name="gaJoin"]:checked');
+        var data = {
+            require_approval: joinVal && joinVal.value === '1',
+            funds_public: document.getElementById('gaFundsPublic').checked,
+            games_visible: document.getElementById('gaGamesVisible').checked
+        };
+        try {
+            await updateGroupInfo(gaGroupId, data);
+            gaGroup = await getGroup(gaGroupId);
+            alert('Settings saved.');
+        } catch(e) { showGaErr(e.message || 'Save failed.'); }
+    }
+
+    async function kickMemberGa(userId) {
+        if (!confirm('Remove this member?')) return;
+        try { await kickGroupMember(gaGroupId, userId); await renderGaTab(); }
+        catch(e) { showGaErr(e.message); }
+    }
+
+    async function changeMemberRankGa(userId, val) {
+        if (!val) return;
+        var parts = val.split(':');
+        try {
+            await setGroupMemberRank(gaGroupId, userId, parts[0], parseInt(parts[1], 10));
+            await renderGaTab();
+        } catch(e) { showGaErr(e.message); }
+    }
+
+    async function approveReq(id) {
+        try { await approveGroupJoinRequest(id); await renderGaTab(); }
+        catch(e) { showGaErr(e.message); }
+    }
+
+    async function declineReq(id) {
+        try { await declineGroupJoinRequest(id); await renderGaTab(); }
+        catch(e) { showGaErr(e.message); }
+    }
+
+    async function initGroupAdmin() {
+        var p = new URLSearchParams(window.location.search);
+        gaGroupId = parseInt(p.get('gid') || p.get('id'), 10);
+        if (!gaGroupId) { window.location.href = 'groups.html'; return; }
+        gaGroup = await getGroup(gaGroupId);
+        if (!gaGroup || !currentProfile || gaGroup.owner_id !== currentProfile.id) {
+            window.location.href = 'groups.html?gid=' + gaGroupId;
+            return;
+        }
+        document.getElementById('groupAdminLoading').style.display = 'none';
+        document.getElementById('groupAdminPanel').style.display = '';
+        document.getElementById('gaTitle').textContent = 'Group Admin — ' + gaGroup.name;
+        renderGaTab();
+    }
+
+    var gaCheck = setInterval(function() {
+        if (currentProfile) { clearInterval(gaCheck); initGroupAdmin(); }
+    }, 100);
+    </script>
+</body>
+</html>
+

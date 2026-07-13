@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Games - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                 <div class="page-wrap games-shell corvixz-gray-page">
+                    <div class="games-container-bg">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="selector-wrapper" style="width:200px;float:left;">
+                                    <div class="selector-closed" id="sortSelector" onclick="toggleSort(event)">
+                                        <span id="sortLabel">Most Visited</span>
+                                        <span class="selector-caret">V</span>
+                                    </div>
+                                    <div class="selector-menu" id="sortMenu" style="display:none;">
+                                        <p class="select-option selected" data-value="visits" onclick="selectSort('visits','Most Visited',this)">Most Visited</p>
+                                        <p class="select-option" data-value="rating" onclick="selectSort('rating','Top Rated',this)">Top Rated</p>
+                                        <p class="select-option" data-value="updated" onclick="selectSort('updated','Recently Updated',this)">Recently Updated</p>
+                                    </div>
+                                </div>
+                                <div class="selector-wrapper" style="width:200px;float:left;margin-left:8px;">
+                                    <div class="selector-closed" id="genreSelector" onclick="toggleGenre(event)">
+                                        <span id="genreLabel">All Genres</span>
+                                        <span class="selector-caret">V</span>
+                                    </div>
+                                    <div class="selector-menu" id="genreMenu" style="display:none;">
+                                        <p class="select-option selected" data-value="" onclick="selectGenre('','All Genres',this)">All Genres</p>
+                                        <p class="select-option" data-value="Adventure" onclick="selectGenre('Adventure','Adventure',this)">Adventure</p>
+                                        <p class="select-option" data-value="Fighting" onclick="selectGenre('Fighting','Fighting',this)">Fighting</p>
+                                        <p class="select-option" data-value="FPS" onclick="selectGenre('FPS','FPS',this)">FPS</p>
+                                        <p class="select-option" data-value="Horror" onclick="selectGenre('Horror','Horror',this)">Horror</p>
+                                        <p class="select-option" data-value="RPG" onclick="selectGenre('RPG','RPG',this)">RPG</p>
+                                        <p class="select-option" data-value="Tycoon" onclick="selectGenre('Tycoon','Tycoon',this)">Tycoon</p>
+                                    </div>
+                                </div>
+                                <div style="clear:both;"></div>
+                            </div>
+                        </div>
+                        <div class="row" id="gamesBody"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script src="../js/ui/themes.js"></script>
+    <script>
+var allGames = [];
+var selectedSort = 'visits';
+var selectedGenre = '';
+
+function abbreviateNumber(value) {
+  value = Number(value) || 0;
+  if (value < 1000) return value.toLocaleString();
+  if (value < 1000000) {
+    if (value > 99999) return value.toString().slice(0, 3) + 'K+';
+    if (value > 9999) return value.toString().slice(0, 2) + 'K+';
+  }
+  var suffixes = ['', 'k', 'm', 'b', 't'];
+  var suffixNum = Math.floor(('' + value).length / 3);
+  var shortValue = parseFloat((suffixNum !== 0 ? (value / Math.pow(1000, suffixNum)) : value).toPrecision(2));
+  if (shortValue % 1 !== 0) shortValue = shortValue.toFixed(1);
+  return shortValue + suffixes[suffixNum].toUpperCase() + '+';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function closeSelectors() {
+  document.querySelectorAll('.selector-menu').forEach(function(m) { m.style.display = 'none'; });
+  document.querySelectorAll('.selector-closed').forEach(function(s) { s.classList.remove('selector-open'); });
+}
+
+function toggleSort(e) {
+  e.stopPropagation();
+  closeSelectors();
+  var menu = document.getElementById('sortMenu');
+  var btn = document.getElementById('sortSelector');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    btn.classList.remove('selector-open');
+  } else {
+    menu.style.display = 'block';
+    btn.classList.add('selector-open');
+  }
+}
+
+function toggleGenre(e) {
+  e.stopPropagation();
+  closeSelectors();
+  var menu = document.getElementById('genreMenu');
+  var btn = document.getElementById('genreSelector');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    btn.classList.remove('selector-open');
+  } else {
+    menu.style.display = 'block';
+    btn.classList.add('selector-open');
+  }
+}
+
+document.addEventListener('click', function() { closeSelectors(); });
+
+function selectSort(val, label, el) {
+  selectedSort = val;
+  document.getElementById('sortLabel').textContent = label;
+  document.getElementById('sortMenu').style.display = 'none';
+  document.getElementById('sortSelector').classList.remove('selector-open');
+  document.querySelectorAll('#sortMenu .select-option').forEach(function(o) { o.classList.remove('selected'); });
+  if (el) el.classList.add('selected');
+  rowStates = {};
+  renderGames();
+}
+
+function selectGenre(val, label, el) {
+  selectedGenre = val;
+  document.getElementById('genreLabel').textContent = label;
+  document.getElementById('genreMenu').style.display = 'none';
+  document.getElementById('genreSelector').classList.remove('selector-open');
+  document.querySelectorAll('#genreMenu .select-option').forEach(function(o) { o.classList.remove('selected'); });
+  if (el) el.classList.add('selected');
+  rowStates = {};
+  renderGames();
+}
+
+function transformGame(g) {
+  return {
+    placeId: g.id,
+    universeId: g.id,
+    name: g.title || g.name,
+    creatorId: g.creator_id,
+    creatorType: 1,
+    creatorName: (g.creator && (g.creator.username || g.creator.display_name)) || 'Unknown',
+    iconUrl: g.thumbnail || 'images/logo/f.png',
+    totalUpVotes: g.upvotes || 0,
+    totalDownVotes: g.downvotes || 0,
+    playerCount: g.playing || 0,
+    visitCount: g.visits || 0,
+    genre: (g.genre || '').toLowerCase(),
+    updated_at: g.updated_at,
+  };
+}
+
+function renderRatingBars(likes, dislikes, colored) {
+  var total = likes + dislikes;
+  var likePercent = total > 0 ? likes / total : 0;
+  if (likePercent < 0) likePercent = 0;
+  var numSolidGreen = Math.trunc(likePercent * 5);
+  var numSolidRed = Math.max(0, 5 - numSolidGreen);
+  var squares = [];
+  for (var i = 0; i < numSolidGreen; i++) squares.push('green');
+  if (numSolidGreen !== likePercent * 5) {
+    var remainder = (likePercent * 5) - numSolidGreen;
+    numSolidRed = Math.max(0, numSolidRed - 1);
+    squares.push('mixed:' + remainder);
+  }
+  for (var i = 0; i < numSolidRed; i++) squares.push('red');
+
+  var greenClass = colored ? 'sgc-solid-green' : 'sgc-solid-gray';
+  var redClass = colored ? 'sgc-solid-red' : 'sgc-solid-light';
+
+  var html = '<div class="sgc-ratio-container">';
+  squares.forEach(function(v) {
+    if (v.indexOf('mixed:') === 0) {
+      var pct = parseFloat(v.split(':')[1]);
+      var wGreen = 20 * pct;
+      var wRed = 20 - wGreen;
+      html += '<div class="sgc-ratio-part-container"><div class="sgc-ratio-part ' + greenClass + '" style="width:' + wGreen + 'px"></div><div class="sgc-ratio-part ' + redClass + '" style="width:' + wRed + 'px"></div></div>';
+    } else {
+      html += '<div class="sgc-ratio-box ' + (v === 'green' ? greenClass : redClass) + '"></div>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function smallGameCardHTML(game) {
+  var url = 'game-page.html?id=' + game.placeId;
+  var thumb = game.iconUrl || 'images/logo/f.png';
+
+  return '<div class="game-row-card" style="width:170px;flex:0 0 auto;padding-left:5px;padding-right:5px;">' +
+    '<div class="sgc-card">' +
+      '<a href="' + url + '" style="color:inherit;text-decoration:none;">' +
+        '<div class="sgc-image-wrapper">' +
+          '<img class="sgc-image" src="' + escapeHtml(thumb) + '" alt="' + escapeHtml(game.name) + '" onerror="this.src=\'images/logo/f.png\'"/>' +
+        '</div>' +
+      '</a>' +
+      '<div class="px-2 pb-2 pt-2">' +
+        '<p class="sgc-label">' + escapeHtml(game.name) + '</p>' +
+        '<p class="sgc-label-playing">' + abbreviateNumber(game.playerCount) + ' Playing</p>' +
+        '<p class="sgc-thumbs-wrapper mt-2 d-inline-block"><span class="icon-thumbs-up"></span></p>' +
+        renderRatingBars(game.totalUpVotes, game.totalDownVotes, false) +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+var rowStates = {};
+
+function renderGameRow(title, games) {
+  if (!games || games.length === 0) return '';
+  var key = title.toLowerCase().replace(/ /g, '-');
+  if (!rowStates[key]) rowStates[key] = { offset: 0, limit: 3 };
+
+  var offset = rowStates[key].offset;
+  var limit = rowStates[key].limit;
+  var visible = games.slice(offset, offset + limit);
+  var totalPages = Math.ceil(games.length / limit);
+  var currentPage = Math.floor(offset / limit);
+  var showForward = currentPage < totalPages - 1;
+
+  var adId = key === 'most-visited' ? 'ad-rectangle-slot' : 'ad-rectangle-slot-2';
+
+  var html = '<div class="row mb-3">' +
+    '<div class="col-12"><h3 class="game-row-title">' + title.toUpperCase() + '</h3></div>' +
+    '<div class="col-12 col-lg-9">' +
+    '<div class="game-row-wrap" style="display:flex;align-items:stretch;">' +
+    '<div class="game-row-pager' + (currentPage === 0 ? ' opacity-25' : '') + '" style="width:40px;flex:0 0 auto;margin-right:10px;height:236px;" onclick="pageRow(\'' + key + '\', \'back\', ' + limit + ')">' +
+      '<p class="game-row-pager-caret"><span class="game-row-caret-right">^</span></p>' +
+    '</div>' +
+    '<div class="game-row" id="gameRow-' + key + '" style="display:flex;flex:0 0 auto;">';
+  for (var i = 0; i < visible.length; i++) {
+    html += smallGameCardHTML(visible[i]);
+  }
+  html += '</div>' +
+    '<div class="game-row-pager' + (!showForward ? ' opacity-25' : '') + '" style="width:40px;flex:0 0 auto;margin-left:10px;height:236px;" onclick="pageRow(\'' + key + '\', \'forward\', ' + limit + ')">' +
+      '<p class="game-row-pager-caret"><span class="game-row-caret-left">^</span></p>' +
+    '</div>' +
+    '</div></div>' +
+    '<div class="col-12 col-lg-3"><div id="' + adId + '" style="width:100%;min-height:250px;"></div></div>' +
+    '</div>';
+  return html;
+}
+
+function pageRow(key, dir, limit) {
+  var state = rowStates[key];
+  if (!state) return;
+  if (dir === 'back') {
+    if (state.offset === 0) return;
+    state.offset = Math.max(0, state.offset - limit);
+  } else {
+    state.offset = state.offset + limit;
+  }
+  renderGames();
+}
+
+function filterAndSortGames() {
+  var filtered = allGames.filter(function(g) {
+    if (selectedGenre && (g.genre || '').toLowerCase() !== selectedGenre.toLowerCase()) return false;
+    return true;
+  });
+  if (selectedSort === 'rating') {
+    filtered.sort(function(a, b) {
+      var aScore = a.totalUpVotes - a.totalDownVotes;
+      var bScore = b.totalUpVotes - b.totalDownVotes;
+      return bScore - aScore || b.visitCount - a.visitCount;
+    });
+  } else if (selectedSort === 'visits') {
+    filtered.sort(function(a, b) { return b.visitCount - a.visitCount; });
+  } else if (selectedSort === 'updated') {
+    filtered.sort(function(a, b) { return new Date(b.updated_at || 0) - new Date(a.updated_at || 0); });
+  }
+  return filtered;
+}
+
+function renderGames() {
+  var body = document.getElementById('gamesBody');
+  if (!body) return;
+  var filtered = filterAndSortGames();
+  if (filtered.length === 0) {
+    body.innerHTML = '<div class="col-12"><p class="mt-4">No results.</p></div>';
+    return;
+  }
+  var sorted = {};
+  sorted['most-visited'] = filtered.slice().sort(function(a, b) { return b.visitCount - a.visitCount; });
+  sorted['top-rated'] = filtered.slice().sort(function(a, b) {
+    return (b.totalUpVotes - b.totalDownVotes) - (a.totalUpVotes - a.totalDownVotes) || b.visitCount - a.visitCount;
+  });
+  body.innerHTML = '';
+  body.insertAdjacentHTML('beforeend', renderGameRow('Most Visited', sorted['most-visited']));
+  body.insertAdjacentHTML('beforeend', renderGameRow('Top Rated', sorted['top-rated']));
+  if (typeof loadRectangleAd === 'function') setTimeout(function() { loadRectangleAd(); }, 100);
+}
+
+async function loadGames() {
+  try {
+    var games = await getGames();
+    if (games && games.length > 0) allGames = games.map(transformGame);
+  } catch(e) { console.warn('Could not load games:', e); }
+  renderGames();
+  if (typeof updateDynamicElements === 'function') updateDynamicElements();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var check = setInterval(function() {
+    if (currentProfile) {
+      clearInterval(check);
+      loadGames();
+    }
+  }, 100);
+});
+    </script>
+</body>
+</html>

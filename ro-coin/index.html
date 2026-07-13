@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Ro-coin - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap rocoin-page-wrap">
+                    <h1 class="page-title-lg">Ro-coin</h1>
+                    <div class="tabs2016-bar rocoin-tabs">
+                        <div class="tabs2016-tab active" data-tab="balance">My Balance</div>
+                        <div class="tabs2016-tab" data-tab="transactions">My Transactions</div>
+                        <div class="tabs2016-tab" data-tab="trades">Trade Items</div>
+                    </div>
+                    <div class="settings-card money-panel-card">
+                                <div id="tab-balance" class="admin-tab-content active">
+                                    <h3 class="money-page-title">Ro-coin Balance</h3>
+                                    <p class="money-balance-display" id="rocoinBalance">0</p>
+                                    <div class="money-daily-box">
+                                        <h4>Daily Bonus</h4>
+                                        <p>Claim <strong>100 Ro-coin</strong> once every day.</p>
+                                        <button class="btn-admin btn-admin-primary" id="claimDailyBtn" onclick="doDailyClaim()">Claim Daily Bonus</button>
+                                        <p id="dailyClaimMsg" class="money-claim-msg" style="display:none;"></p>
+                                    </div>
+                                </div>
+                                <div id="tab-transactions" class="admin-tab-content">
+                                    <h3 class="money-page-title">My Transactions</h3>
+                                    <table class="admin-table money-table">
+                                        <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+                                        <tbody id="transactionsBody"></tbody>
+                                    </table>
+                                    <div id="txLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading...</div>
+                                </div>
+                                <div id="tab-trades" class="admin-tab-content">
+                                    <h3 class="money-page-title">Trade Items</h3>
+                                    <p>Trade items with other players on the Trade page.</p>
+                                    <a href="/trade/" class="seeAllButton-0-2-20" style="display:inline-block;padding:10px 24px;text-decoration:none;margin-top:12px;">Go to Trades</a>
+                                </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    function showMoneyTab(tab) {
+        document.querySelectorAll('.rocoin-tabs .tabs2016-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.rocoin-page-wrap .admin-tab-content').forEach(function(c) { c.classList.remove('active'); });
+        document.querySelector('.rocoin-tabs .tabs2016-tab[data-tab="' + tab + '"]').classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+        if (tab === 'transactions') loadTransactions();
+    }
+    document.querySelectorAll('.rocoin-tabs .tabs2016-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() { showMoneyTab(this.getAttribute('data-tab')); });
+    });
+
+    async function loadRoCoinPage() {
+        if (!currentProfile) return;
+        var bal = document.getElementById('rocoinBalance');
+        if (bal) bal.innerHTML = robuxHtml(currentProfile.currency || 0, 18, true);
+        try {
+            var status = await getDailyClaimStatus(currentProfile.id);
+            var btn = document.getElementById('claimDailyBtn');
+            if (btn && status.claimedToday) {
+                btn.disabled = true;
+                btn.textContent = 'Already claimed today';
+            }
+        } catch(e) {}
+        if (typeof updateDynamicElements === 'function') updateDynamicElements();
+    }
+
+    async function doDailyClaim() {
+        var btn = document.getElementById('claimDailyBtn');
+        var msg = document.getElementById('dailyClaimMsg');
+        try {
+            var res = await claimDailyRoCoin();
+            if (res && res.success) {
+                currentProfile.currency = res.balance;
+                if (btn) { btn.disabled = true; btn.textContent = 'Already claimed today'; }
+                if (msg) { msg.style.display = 'block'; msg.style.color = '#28a745'; msg.textContent = '+100 Ro-coin claimed!'; }
+                loadRoCoinPage();
+                if (typeof updateDynamicElements === 'function') updateDynamicElements();
+            } else {
+                if (msg) { msg.style.display = 'block'; msg.style.color = '#d86868'; msg.textContent = (res && res.message) || 'Already claimed today'; }
+                if (btn) { btn.disabled = true; btn.textContent = 'Already claimed today'; }
+            }
+        } catch(e) {
+            if (msg) { msg.style.display = 'block'; msg.style.color = '#d86868'; msg.textContent = 'Error: ' + e.message; }
+        }
+    }
+
+    async function loadTransactions() {
+        var tbody = document.getElementById('transactionsBody');
+        var loading = document.getElementById('txLoading');
+        if (!tbody) return;
+        loading.style.display = 'block';
+        try {
+            var txs = await getCurrencyTransactions(currentProfile.id);
+            loading.style.display = 'none';
+            if (!txs || !txs.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;">No transactions yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            txs.forEach(function(t) {
+                var tr = document.createElement('tr');
+                var sign = t.amount >= 0 ? '+' : '';
+                tr.innerHTML = '<td>' + new Date(t.created_at).toLocaleDateString() + '</td>'
+                    + '<td>' + (t.description || '—') + '</td>'
+                    + '<td>' + sign + t.amount + '</td>';
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            loading.style.display = 'none';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#d86868;">Run supabase-roles-economy-ads.sql</td></tr>';
+        }
+    }
+
+    var coinCheck = setInterval(function() { if (currentProfile) { clearInterval(coinCheck); loadRoCoinPage(); } }, 100);
+    </script>
+</body>
+</html>
+

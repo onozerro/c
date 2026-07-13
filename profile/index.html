@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>User's Profile - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                    <div id="ad-slot"></div>
+                    <div class="profileContainer-0-2-396 profile-page-wrap corvixz-gray-page">
+                        <div class="flex profileHeaderContainer-0-2-412">
+                            <div class="col-12">
+                                <div class="card card-0-2-423">
+                                    <div class="card-body cardBody-0-2-413">
+                                        <div class="flex">
+                                            <div class="thumbnailContainer-0-2-414">
+                                                <div class="avatarHeadshotContainer-0-2-416">
+                                                    <img src="../images/avatar/avatar.png" alt="User">
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-lg-10 ps-0 userInfoContainer-0-2-415">
+                                                <h2 class="username-0-2-400">User</h2>
+                                                <div class="profile-dots-wrap" style="display:inline;float:right;position:relative;cursor:pointer;user-select:none;margin-top:-28px;">
+                                                    <span class="icon-more" onclick="toggleProfileDropdown(event)"></span>
+                                                    <div id="profileDropdownMenu" class="profile-dropdown-menu" style="display:none;position:absolute;right:-20px;top:100%;width:125px;background:#fff;border:1px solid #c3c3c3;border-radius:2px;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                                                </div>
+                                                <div id="statusRow" style="display:none;margin-top:0;margin-bottom:8px;">
+                                                    <p id="statusDisplay" class="statusText" style="color:var(--text-color-tertiary);cursor:pointer;"></p>
+                                                    <div id="statusEdit" style="display:none;">
+                                                        <input id="statusInput" type="text" class="form-control" maxlength="50" placeholder="What's on your mind?" style="font-size:14px;height:auto;padding:2px 6px;width:auto;min-width:200px;"/>
+                                                    </div>
+                                                </div>
+                                                <div class="flex relationshipContainer-0-2-418" style="display:flex;align-items:center;justify-content:space-between;">
+                                                    <div style="display:flex;flex:1;">
+                                                        <div style="width:25%;padding:0 5px;text-align:center;">
+                                                            <div class="statHeader-0-2-424">Friends</div>
+                                                            <a class="statTextContainer-0-2-426" id="profileLinkFriends" href="/friends/"><h3 class="statText-0-2-427" id="profileFriendCount">0</h3></a>
+                                                        </div>
+                                                        <div style="width:25%;padding:0 5px;text-align:center;">
+                                                            <div class="statHeader-0-2-424">Followers</div>
+                                                            <a class="statTextContainer-0-2-426" id="profileLinkFollowers" href="#"><h3 class="statText-0-2-427" id="profileFollowerCount">0</h3></a>
+                                                        </div>
+                                                        <div style="width:25%;padding:0 5px;text-align:center;">
+                                                            <div class="statHeader-0-2-424">Following</div>
+                                                            <a class="statTextContainer-0-2-426" id="profileLinkFollowing" href="#"><h3 class="statText-0-2-427" id="profileFollowingCount">0</h3></a>
+                                                        </div>
+                                                        <div style="width:25%;padding:0 5px;text-align:center;">
+                                                            <div class="statHeader-0-2-424">RAP</div>
+                                                            <a class="statTextContainer-0-2-426" href="#"><h3 class="statText-0-2-427">0</h3></a>
+                                                        </div>
+                                                    </div>
+                                                    <div id="profileHeaderActions" class="profile-header-actions" style="display:none;">
+                                                        <div class="profile-action-col">
+                                                            <button class="profile-btn" type="button" onclick="location.href='/messages/'">Message</button>
+                                                        </div>
+                                                        <div class="profile-action-col" id="friendActionContainer"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="tabs2016-bar profile-tabs2016">
+                                <div class="tabs2016-tab active" onclick="switchProfileTab('about')"><span class="spanText-0-2-430">About</span></div>
+                                <div class="tabs2016-tab" onclick="switchProfileTab('creations')"><span class="spanText-0-2-430">Creations</span></div>
+                            </div>
+                            <div id="profileAboutSection" class="col-12 selectedElement-0-2-436 selectedElementClass-0-2-398">
+                                <div class="flex" style="margin-top:8px;">
+                                    <div class="col-2"><h3 class="header-0-2-441">About</h3></div>
+                                    <div class="col-12">
+                                        <div class="marginStuff card-0-2-423" style="position:relative;">
+                                            <p class="body-0-2-437" id="profileDescription">Welcome to my CORVIXZ profile!</p>
+                                            <button id="editDescriptionBtn" class="btn profile-edit-btn newCancelButton-0-2-27" onclick="startDescriptionEdit()" style="display:none;position:absolute;top:8px;right:8px;">Edit</button>
+                                            <div id="editBtns" class="profile-edit-btns" style="display:none;position:absolute;top:8px;right:8px;">
+                                                <button class="btn profile-edit-btn newContinueButton-0-2-31" onclick="saveDescription()">Save</button>
+                                                <button class="btn profile-edit-btn newCancelButton-0-2-27" onclick="cancelDescriptionEdit()">Cancel</button>
+                                            </div>
+                                            <div id="descriptionEdit" style="display:none;">
+                                                <textarea id="descriptionTextarea" class="form-control mb-2" rows="3" placeholder="Write something about yourself..." style="font-size:14px;resize:vertical;"></textarea>
+                                            </div>
+                                            <div class="divider-top me-4 ms-4"></div>
+                                            <div class="flex">
+                                                <div class="col-6"></div>
+                                                <div class="col-6">
+                                                    <div class="report-0-2-438 me-4">
+                                                        <div class="reportWrapper-0-2-439">
+                                                            <p class="text-0-2-449"><a class="link-0-2-450" href="#" style="color:var(--primary-color);">Report Abuse</a></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex marginStuff">
+                                    <div class="col-12"><h3 class="header-0-2-441">Currently Wearing</h3></div>
+                                    <div class="col-12 col-lg-6 pe-0">
+                                        <div class="card avatarImageCard-0-2-454">
+                                            <div class="avatarImageWrapper-0-2-452">
+                                                <img src="../images/avatar/ava2.png" id="currentlyWearingAvatar">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-lg-6 ps-0">
+                                        <div class="card assetContainerCard-0-2-453">
+                                            <div class="flex ps-4 pe-4 pt-4 pb-4" id="equippedItemsContainer">
+                                                <div style="text-align:center;padding:20px;color:#fff;font-size:13px;width:100%;">No items equipped</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <div class="col-10"><h3 class="header-0-2-441">Friends (<span id="profileFriendCountHeader">0</span>)</h3></div>
+                                    <div class="col-2"><div class="buttonWrapper-0-2-473"><a class="button-0-2-474" href="/friends/">See All</a></div></div>
+                                    <div class="col-12"><div class="marginStuff card-0-2-423">
+                                        <div class="row pt-3 pb-3 pe-3 ps-3 me-0 ms-0 profile-friends-row" id="profileFriendsRow"></div>
+                                    </div></div>
+                                </div>
+                                <div class="flex marginStuff" id="profileGroupsSection" style="display:none;">
+                                    <div class="col-6"><h3 class="header-0-2-441">Groups</h3></div>
+                                    <div class="col-3 col-lg-1 offset-lg-4 pe-1 profile-groups-view-btns">
+                                        <button type="button" class="profile-groups-view-btn active" id="groupsViewSquare" onclick="setProfileGroupsView('square')" title="Slideshow"><span class="icon-slideshow"></span></button>
+                                    </div>
+                                    <div class="col-3 col-lg-1 ps-1 profile-groups-view-btns">
+                                        <button type="button" class="profile-groups-view-btn" id="groupsViewGrid" onclick="setProfileGroupsView('grid')" title="Grid"><span class="icon-grid"></span></button>
+                                    </div>
+                                    <div class="col-12"><div class="marginStuff card-0-2-423" id="profileGroupsContent"></div></div>
+                                </div>
+                                <div class="flex marginStuff">
+                                    <div class="col-12"><h3 class="header-0-2-441">Statistics</h3></div>
+                                    <div class="col-12"><div class="card-0-2-423">
+                                        <div class="flex padder-0-2-495">
+                                            <div class="col-4"><p class="label-0-2-496">Join Date</p><p class="value-0-2-497">1/1/2026</p></div>
+                                            <div class="col-4"><p class="label-0-2-496">Place Visits</p><p class="value-0-2-497">0</p></div>
+                                            <div class="col-4"><p class="label-0-2-496">Forum Posts</p><p class="value-0-2-497">0</p></div>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <div id="profileCreationsSection" class="col-12" style="display:none;margin-top:8px;">
+                                <div id="creationsContent" style="min-height:200px;">
+                                    <p class="corvixz-empty" style="padding:30px;">Loading creations...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var profileGroupsData = [];
+    var profileGroupsView = 'square';
+    var profileGroupsOffset = 0;
+
+    function abbreviateNumber(n) {
+        n = Number(n) || 0;
+        if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+        return String(n);
+    }
+
+    function setProfileGroupsView(mode) {
+        profileGroupsView = mode;
+        profileGroupsOffset = 0;
+        document.getElementById('groupsViewSquare').classList.toggle('active', mode === 'square');
+        document.getElementById('groupsViewGrid').classList.toggle('active', mode === 'grid');
+        renderProfileGroups();
+    }
+
+    function renderProfileGroups() {
+        var container = document.getElementById('profileGroupsContent');
+        if (!container || !profileGroupsData.length) return;
+        if (profileGroupsView === 'grid') {
+            var html = '<div class="row ps-3 pe-3 pt-2 pb-2">';
+            profileGroupsData.forEach(function(m) {
+                var g = m.group;
+                html += '<div class="col-6 col-lg-2 pe-0 ps-0 mb-2"><a href="/groups/' + g.id + '">';
+                html += '<div class="card profile-group-grid-card"><img class="profile-group-grid-emblem" src="' + escHtml(g.emblem_url || 'images/logo/f.png') + '" alt=""/>';
+                html += '<div class="ps-1 pe-1 pb-1"><p class="profile-group-grid-name">' + escHtml(g.name) + '</p>';
+                html += '<p class="profile-group-grid-meta">' + abbreviateNumber(m.memberCount || 0) + ' Members</p>';
+                html += '<p class="profile-group-grid-meta">' + escHtml(m.rank_name || 'Member') + '</p></div></div></a></div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            return;
+        }
+        var m = profileGroupsData[profileGroupsOffset];
+        var g = m.group;
+        var showNav = profileGroupsData.length > 1;
+        var html = '<div class="row profile-group-carousel-wrap pt-2 pb-2">';
+        if (showNav) html += '<div class="profile-group-cursor profile-group-cursor-back" onclick="shiftProfileGroup(-1)">‹</div>';
+        html += '<div class="col-12 col-lg-6 pe-lg-0"><div class="profile-group-square-icon-wrap">';
+        html += '<a href="/groups/' + g.id + '"><img class="profile-group-square-emblem" src="' + escHtml(g.emblem_url || 'images/logo/f.png') + '" alt=""/></a></div></div>';
+        html += '<div class="col-12 col-lg-6 ps-lg-0"><div class="card pt-4 pb-4 ps-4 pe-4" style="height:100%;">';
+        html += '<h3 class="profile-group-square-name">' + escHtml(g.name) + '</h3>';
+        html += '<p class="profile-group-square-desc">' + escHtml(g.description || '') + '</p>';
+        html += '<div class="row"><div class="col-6"><p class="profile-group-stat-label">Members</p><p class="profile-group-stat-value">' + abbreviateNumber(m.memberCount || 0) + '</p></div>';
+        html += '<div class="col-6"><p class="profile-group-stat-label">Rank</p><p class="profile-group-stat-value">' + escHtml(m.rank_name || 'Member') + '</p></div></div>';
+        html += '</div></div>';
+        if (showNav) html += '<div class="profile-group-cursor profile-group-cursor-fwd" onclick="shiftProfileGroup(1)">›</div>';
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function shiftProfileGroup(dir) {
+        if (!profileGroupsData.length) return;
+        profileGroupsOffset += dir;
+        if (profileGroupsOffset < 0) profileGroupsOffset = profileGroupsData.length - 1;
+        if (profileGroupsOffset >= profileGroupsData.length) profileGroupsOffset = 0;
+        renderProfileGroups();
+    }
+
+    async function loadProfileGroups(profileId) {
+        try {
+            var groups = await getUserGroups(profileId);
+            if (!groups || !groups.length) {
+                document.getElementById('profileGroupsSection').style.display = 'none';
+                return;
+            }
+            profileGroupsData = [];
+            for (var i = 0; i < groups.length; i++) {
+                var entry = groups[i];
+                entry.memberCount = await getGroupMemberCount(entry.group.id);
+                profileGroupsData.push(entry);
+            }
+            profileGroupsData.sort(function(a, b) {
+                if (a.is_primary && !b.is_primary) return -1;
+                if (!a.is_primary && b.is_primary) return 1;
+                return (b.rank || 0) - (a.rank || 0);
+            });
+            document.getElementById('profileGroupsSection').style.display = '';
+            renderProfileGroups();
+        } catch(e) {
+            document.getElementById('profileGroupsSection').style.display = 'none';
+        }
+    }
+
+    async function loadProfile() {
+        var profileId = getPathId();
+        var isOwn = false;
+
+        if (!profileId) { profileId = currentProfile?.id; isOwn = true; }
+        if (!profileId) return;
+
+        if (profileId && /^\d+$/.test(profileId)) {
+            try {
+                var res = await supabaseFetch(API_URL + '/profiles?select=*&user_number=eq.' + parseInt(profileId) + '&limit=1', { headers: authHeaders() });
+                if (res && res[0]) { profileId = res[0].id; }
+            } catch(e) {}
+        }
+
+        try {
+            var profile = null;
+            if (profileId === currentProfile?.id) { profile = currentProfile; isOwn = true; }
+            else {
+                try { profile = await getProfile(profileId); } catch(e) {}
+            }
+
+            if (profile && profile.is_banned && !isOwn) {
+                document.querySelector('.profileContainer-0-2-396').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;text-align:center;padding:40px 20px;"><div style="color:#4a4a4a;font-size:24px;font-weight:500;line-height:1.2;margin:0 0 8px;">Account Banned</div><p style="font-size:16px;color:var(--text-color-tertiary);">This user has been banned.</p></div>';
+                return;
+            }
+
+            var userName = profile ? (profile.display_name || profile.username) : '404';
+            var userAvatar = profile ? (profile.avatar_url && profile.avatar_url !== 'images/avatar/avatar.png' ? profile.avatar_url : 'images/avatar/ava2.png') : 'images/avatar/ava2.png';
+            var userHeadshot = profile ? (profile.headshot_url || 'images/avatar/headshot.png') : 'images/avatar/headshot.png';
+
+            document.title = userName + '\'s Profile - CORVIXZ';
+            document.querySelector('.avatarHeadshotContainer-0-2-416 img').src = userHeadshot;
+            var currentlyWearingAvatar = document.getElementById('currentlyWearingAvatar');
+            if (currentlyWearingAvatar) currentlyWearingAvatar.src = userAvatar;
+            document.querySelector('.username-0-2-400').textContent = userName;
+            var verifSpan = document.querySelector('.username-0-2-400');
+            if (profile && profile.is_verified) verifSpan.innerHTML += ' <img src="../images/logo/verif.png" height="18" alt="✓"/>';
+
+            var userNum = profile?.user_number || getPathId();
+            var linkFriends = document.getElementById('profileLinkFriends');
+            var linkFollowers = document.getElementById('profileLinkFollowers');
+            var linkFollowing = document.getElementById('profileLinkFollowing');
+            if (linkFriends) linkFriends.href = 'friends.html?id=' + userNum;
+            if (linkFollowers) linkFollowers.href = 'friends.html?id=' + userNum + '&tab=followers';
+            if (linkFollowing) linkFollowing.href = 'friends.html?id=' + userNum + '&tab=following';
+
+            var descEl = document.getElementById('profileDescription');
+            if (descEl) descEl.textContent = profile ? (profile.description || 'No description set.') : 'User not found.';
+
+            if (isOwn) {
+                var editBtn = document.getElementById('editDescriptionBtn');
+                if (editBtn) editBtn.style.display = 'inline-block';
+            }
+
+            var statusRow = document.getElementById('statusRow');
+            var statusDisplay = document.getElementById('statusDisplay');
+            if (statusRow && statusDisplay) {
+                if (profile) {
+                    if (profile.is_banned) {
+                        statusRow.style.display = 'none';
+                    } else if (!isOwn && !profile.status) {
+                        statusRow.style.display = '';
+                        statusDisplay.textContent = 'Offline';
+                        statusDisplay.style.cursor = 'default';
+                        statusDisplay.style.color = 'var(--text-color-tertiary)';
+                    } else if (profile.status) {
+                        statusRow.style.display = '';
+                        statusDisplay.innerHTML = '&ldquo;' + escHtml(profile.status) + '&rdquo;';
+                        statusDisplay.style.cursor = 'default';
+                        statusDisplay.style.color = 'var(--text-color-tertiary)';
+                    } else {
+                        statusRow.style.display = '';
+                        statusDisplay.innerHTML = '&emsp;';
+                        statusDisplay.style.cursor = 'default';
+                        statusDisplay.style.color = 'transparent';
+                    }
+                    statusDisplay.onclick = null;
+                } else {
+                    statusRow.style.display = 'none';
+                }
+            }
+
+            if (profile) {
+                var joinDate = new Date(profile.created_at).toLocaleDateString();
+                document.querySelector('.value-0-2-497').textContent = joinDate;
+            }
+
+            if (typeof updateDynamicElements === 'function') updateDynamicElements();
+
+            if (profile) {
+                try {
+                    var inventory = await getUserInventory(profileId);
+                    var equippedContainer = document.getElementById('equippedItemsContainer');
+                    var totalRap = 0;
+                    if (inventory && inventory.length > 0) {
+                        inventory.forEach(function(entry) {
+                            if (entry.item && entry.item.price) totalRap += entry.item.price;
+                        });
+                    }
+                    var rapEl = document.querySelector('.statText-0-2-427');
+                    if (rapEl) {
+                        var allStatTexts = document.querySelectorAll('.statText-0-2-427');
+                        if (allStatTexts.length >= 4) allStatTexts[3].textContent = totalRap;
+                    }
+                    if (inventory && inventory.length > 0) {
+                        var equipped = inventory.filter(function(entry) { return entry.equipped; });
+                        if (equipped.length > 0) {
+                            equippedContainer.innerHTML = '';
+                            equipped.forEach(function(entry) {
+                                var item = entry.item;
+                                if (!item) return;
+                                var div = document.createElement('div');
+                                div.className = 'col-3 pt-2 ps-1 pe-1';
+                                div.innerHTML = '<div class="card" title="' + escHtml(item.name) + '"><a href="/item/' + (item.item_number || item.id) + '"><img src="' + escHtml(item.image_url || 'images/avatar/avatar.png') + '" style="width:100%;"/></a></div>';
+                                equippedContainer.appendChild(div);
+                            });
+                        } else {
+                            equippedContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#fff;font-size:13px;width:100%;">No items equipped</div>';
+                        }
+                    } else {
+                        equippedContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#fff;font-size:13px;width:100%;">No items equipped</div>';
+                    }
+                } catch(e) { console.error('Inventory load error:', e); }
+
+                var friends = await getFriends(profileId);
+                var friendCount = friends.length;
+                var statFriends = document.getElementById('profileFriendCount');
+                if (statFriends) statFriends.textContent = friendCount;
+
+                var fcHeader = document.getElementById('profileFriendCountHeader');
+                if (fcHeader) fcHeader.textContent = friendCount;
+
+                try {
+                    var followersRes = await supabaseFetch(API_URL + '/follows?select=id&following_id=eq.' + profileId, { headers: authHeaders() });
+                    var followerCountEl = document.getElementById('profileFollowerCount');
+                    if (followerCountEl) followerCountEl.textContent = (followersRes || []).length;
+                } catch(e) {}
+                try {
+                    var followingRes = await supabaseFetch(API_URL + '/follows?select=id&follower_id=eq.' + profileId, { headers: authHeaders() });
+                    var followingCountEl = document.getElementById('profileFollowingCount');
+                    if (followingCountEl) followingCountEl.textContent = (followingRes || []).length;
+                } catch(e) {}
+
+                var friendsRow = document.getElementById('profileFriendsRow');
+                if (friendsRow) {
+                    friendsRow.innerHTML = '';
+                    if (friends.length === 0) {
+                        friendsRow.innerHTML = '<div class="col-12"><p class="corvixz-empty" style="padding:20px;">No friends to show.</p></div>';
+                    } else {
+                        friends.slice(0, 10).forEach(function(f) {
+                            var col = document.createElement('div');
+                            col.className = 'col-1 profile-friend-col';
+                            col.innerHTML =
+                                '<div class="profile-friend-card">' +
+                                    '<a href="/profile/' + (f.user_number || f.id) + '">' +
+                                        '<div class="profile-friend-img-wrap">' +
+                                            '<img src="' + escHtml(f.headshot_url || 'images/avatar/headshot.png') + '" alt=""/>' +
+                                        '</div>' +
+                                        '<p class="profile-friend-name">' + escHtml(f.username) +
+                                            (f.is_verified ? ' <img src="../images/logo/verif.png" height="14" alt="✓"/>' : '') +
+                                        '</p>' +
+                                    '</a>' +
+                                '</div>';
+                            friendsRow.appendChild(col);
+                        });
+                    }
+                }
+                await loadProfileGroups(profileId);
+            }
+
+            var headerActions = document.getElementById('profileHeaderActions');
+            if (headerActions) headerActions.style.display = (!isOwn && profile) ? 'flex' : 'none';
+
+            if (!isOwn && profile) {
+                var container = document.getElementById('friendActionContainer');
+                if (container) {
+                    var status = await getFriendStatus(currentProfile.id, profileId);
+                    if (status === 'none') {
+                        container.innerHTML = '<button class="profile-btn" type="button" onclick="sendFriendReq(\'' + profileId + '\')">Add Friend</button>';
+                    } else if (status === 'sent') {
+                        container.innerHTML = '<button class="profile-btn" type="button" disabled>Pending</button>';
+                    } else if (status === 'received') {
+                        container.innerHTML = '<button class="profile-btn" type="button" onclick="acceptFriendReq(\'' + profileId + '\',\'' + currentProfile.id + '\')">Accept</button>';
+                    } else if (status === 'friends') {
+                        container.innerHTML = '<button class="profile-btn profile-btn-danger" type="button" onclick="unfriendUser(\'' + profileId + '\',\'' + currentProfile.id + '\')">Unfriend</button>';
+                    }
+                }
+                var userNum = (profile && profile.user_number) || profileId;
+                try {
+                    var follows = await supabaseFetch(API_URL + '/follows?follower_id=eq.' + currentProfile.id + '&following_id=eq.' + profileId + '&limit=1', { headers: authHeaders() });
+                    var isFollowing = follows && follows.length > 0;
+                    buildProfileDropdown(isOwn, profileId, isFollowing ? 'following' : 'none', userNum);
+                } catch(e) { buildProfileDropdown(isOwn, profileId, 'none', userNum); }
+            } else {
+                buildProfileDropdown(isOwn, profileId, null, (profile && profile.user_number) || profileId);
+            }
+        } catch(e) { console.error('Profile load error:', e); }
+    }
+
+    async function sendFriendReq(receiverId) {
+        try {
+            await sendFriendRequest(currentProfile.id, receiverId);
+            alert('Friend request sent!');
+            location.reload();
+        } catch(e) { alert('Error: ' + (e.message || 'Failed to send request')); }
+    }
+
+    async function acceptFriendReq(otherId, myId) {
+        try {
+            var reqs = await supabaseFetch(API_URL + '/friend_requests?select=id&sender_id=eq.' + otherId + '&receiver_id=eq.' + myId + '&status=eq.pending&limit=1', { headers: authHeaders() });
+            if (reqs && reqs[0]) { await acceptFriendRequest(reqs[0].id); location.reload(); }
+            else { alert('Request not found.'); }
+        } catch(e) { alert('Error: ' + (e.message || 'Failed to accept')); }
+    }
+
+    async function cancelFriendReq(otherId, myId) {
+        try {
+            var reqs = await supabaseFetch(API_URL + '/friend_requests?select=id&sender_id=eq.' + myId + '&receiver_id=eq.' + otherId + '&status=eq.pending&limit=1', { headers: authHeaders() });
+            if (reqs && reqs[0]) { await declineFriendRequest(reqs[0].id); location.reload(); }
+            else { alert('Request not found.'); }
+        } catch(e) { alert('Error: ' + (e.message || 'Failed to cancel')); }
+    }
+
+    async function declineFriendReq(otherId, myId) {
+        try {
+            var reqs = await supabaseFetch(API_URL + '/friend_requests?select=id&sender_id=eq.' + otherId + '&receiver_id=eq.' + myId + '&status=eq.pending&limit=1', { headers: authHeaders() });
+            if (reqs && reqs[0]) { await declineFriendRequest(reqs[0].id); location.reload(); }
+            else { alert('Request not found.'); }
+        } catch(e) { alert('Error: ' + (e.message || 'Failed to decline')); }
+    }
+
+    async function unfriendUser(otherId, myId) {
+        try {
+            if (confirm('Are you sure you want to unfriend this user?')) {
+                await removeFriend(myId, otherId);
+                location.reload();
+            }
+        } catch(e) { alert('Error: ' + (e.message || 'Failed to unfriend')); }
+    }
+
+    function startDescriptionEdit() {
+        var desc = document.getElementById('profileDescription');
+        var textarea = document.getElementById('descriptionTextarea');
+        var editDiv = document.getElementById('descriptionEdit');
+        if (!desc || !textarea || !editDiv) return;
+        textarea.value = desc.textContent === 'No description set.' ? '' : desc.textContent;
+        desc.style.display = 'none';
+        editDiv.style.display = '';
+        document.getElementById('editDescriptionBtn').style.display = 'none';
+        document.getElementById('editBtns').style.display = 'flex';
+    }
+    function cancelDescriptionEdit() {
+        document.getElementById('profileDescription').style.display = '';
+        document.getElementById('descriptionEdit').style.display = 'none';
+        document.getElementById('editDescriptionBtn').style.display = 'inline-block';
+        document.getElementById('editBtns').style.display = 'none';
+    }
+    async function saveDescription() {
+        var textarea = document.getElementById('descriptionTextarea');
+        var newDesc = textarea.value.trim();
+        try {
+            await updateProfile(currentProfile.id, { description: newDesc });
+            currentProfile.description = newDesc;
+            document.getElementById('profileDescription').textContent = newDesc || 'No description set.';
+            cancelDescriptionEdit();
+        } catch(e) { alert('Error saving: ' + e.message); }
+    }
+    function startStatusEdit() {
+        var display = document.getElementById('statusDisplay');
+        var input = document.getElementById('statusInput');
+        var edit = document.getElementById('statusEdit');
+        if (!display || !input || !edit) return;
+        input.value = currentProfile.status || '';
+        display.style.display = 'none';
+        edit.style.display = '';
+        input.focus();
+        input.onkeydown = function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); saveStatus(); }
+            if (e.key === 'Escape') { e.preventDefault(); cancelStatusEdit(); }
+        };
+        input.onblur = function() { cancelStatusEdit(); };
+    }
+    function cancelStatusEdit() {
+        var input = document.getElementById('statusInput');
+        if (input) input.onkeydown = null;
+        document.getElementById('statusDisplay').style.display = '';
+        document.getElementById('statusEdit').style.display = 'none';
+    }
+    async function saveStatus() {
+        var input = document.getElementById('statusInput');
+        var newStatus = input.value.trim();
+        try {
+            await updateProfile(currentProfile.id, { status: newStatus });
+            currentProfile.status = newStatus;
+            var display = document.getElementById('statusDisplay');
+            if (newStatus) {
+                display.innerHTML = '&ldquo;' + escHtml(newStatus) + '&rdquo;';
+                display.style.color = 'var(--primary-color)';
+            } else {
+                display.textContent = 'Click to update your status';
+                display.style.color = 'var(--text-color-tertiary)';
+            }
+            cancelStatusEdit();
+        } catch(e) { alert('Error saving: ' + e.message); }
+    }
+    function escHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    var profileDropdownOpen = false;
+    function toggleProfileDropdown(e) {
+        e.stopPropagation();
+        profileDropdownOpen = !profileDropdownOpen;
+        document.getElementById('profileDropdownMenu').style.display = profileDropdownOpen ? '' : 'none';
+    }
+    document.addEventListener('click', function() {
+        if (profileDropdownOpen) {
+            profileDropdownOpen = false;
+            document.getElementById('profileDropdownMenu').style.display = 'none';
+        }
+    });
+    function buildProfileDropdown(isOwn, profileId, friendStatus, userNumber) {
+        var partnerKey = userNumber || profileId;
+        var menu = document.getElementById('profileDropdownMenu');
+        if (!menu) return;
+        var items = [];
+        if (isOwn) {
+            items.push({ name: 'Update Status', onClick: 'dropdownEditStatus()' });
+        } else {
+            if (friendStatus === 'none' || !friendStatus) {
+                items.push({ name: 'Follow', onClick: 'followProfile(\'' + profileId + '\')' });
+            } else {
+                items.push({ name: 'Unfollow', onClick: 'unfollowProfile(\'' + profileId + '\')' });
+            }
+            items.push({ name: 'Block', onClick: 'blockProfile(\'' + profileId + '\')' });
+        }
+        items.push({ name: 'Inventory', url: 'inventory.html?id=' + partnerKey });
+        if (!isOwn) {
+            items.push({ name: 'Trade', onClick: 'tradeProfile(\'' + partnerKey + '\')' });
+        }
+        var html = '';
+        items.forEach(function(item) {
+            if (item.url) {
+                html += '<a href="' + item.url + '" style="text-decoration:none;color:inherit;"><div class="profile-dots-item" style="padding:8px 12px;font-size:16px;cursor:pointer;"><p class="mb-0" style="color:rgb(33,37,41);">' + item.name + '</p></div></a>';
+            } else {
+                html += '<div class="profile-dots-item" style="padding:8px 12px;font-size:16px;cursor:pointer;" onclick="' + item.onClick + '"><p class="mb-0" style="color:rgb(33,37,41);">' + item.name + '</p></div>';
+            }
+        });
+        menu.innerHTML = html;
+    }
+    function dropdownEditStatus() {
+        document.getElementById('profileDropdownMenu').style.display = 'none';
+        profileDropdownOpen = false;
+        startStatusEdit();
+    }
+    async function followProfile(id) {
+        if (id && currentProfile && String(id) === String(currentProfile.id)) return;
+        try {
+            await supabaseFetch(API_URL + '/follows', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ follower_id: currentProfile.id, following_id: id }) });
+        } catch(e) { console.error(e); }
+        location.reload();
+    }
+    async function unfollowProfile(id) {
+        try {
+            await supabaseFetch(API_URL + '/follows?follower_id=eq.' + currentProfile.id + '&following_id=eq.' + id, { method: 'DELETE', headers: authHeaders() });
+        } catch(e) { console.error(e); }
+        location.reload();
+    }
+    function blockProfile(id) {
+    }
+    function tradeProfile(id) {
+        window.location.href = '/trade/' + encodeURIComponent(id);
+    }
+
+    var profileCreationsLoaded = false;
+    var profileCachedCreations = [];
+
+    function switchProfileTab(tab) {
+        var tabs = document.querySelectorAll('.profile-tabs2016 .tabs2016-tab');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        if (tab === 'about') {
+            tabs[0].classList.add('active');
+            document.getElementById('profileAboutSection').style.display = '';
+            document.getElementById('profileCreationsSection').style.display = 'none';
+        } else {
+            tabs[1].classList.add('active');
+            document.getElementById('profileAboutSection').style.display = 'none';
+            document.getElementById('profileCreationsSection').style.display = '';
+            if (!profileCreationsLoaded) {
+                profileCreationsLoaded = true;
+                loadProfileCreations();
+            }
+        }
+    }
+
+    function renderProfileCreations() {
+        var container = document.getElementById('creationsContent');
+        if (!container) return;
+        if (!profileCachedCreations.length) {
+            container.innerHTML = '<p class="corvixz-empty" style="padding:30px;">No creations yet.</p>';
+            return;
+        }
+        var html = '<div style="display:flex;flex-wrap:wrap;margin:0 -5px;">';
+        profileCachedCreations.forEach(function(g) {
+            var thumb = g.thumbnail || 'images/logo/f.png';
+            var title = escHtml(g.title || 'Untitled');
+            var gameUrl = 'game-page.html?id=' + g.id;
+            html += '<div class="game-row-card" style="width:170px;flex:0 0 auto;padding:5px;">';
+            html += '<div class="sgc-card">';
+            html += '<a href="' + gameUrl + '" style="color:inherit;text-decoration:none;">';
+            html += '<div class="sgc-image-wrapper">';
+            html += '<img class="sgc-image" src="' + escHtml(thumb) + '" alt="' + escHtml(title) + '" onerror="this.src=\'images/logo/f.png\'"/>';
+            html += '</div>';
+            html += '</a>';
+            html += '<div class="px-2 pb-2 pt-2">';
+            html += '<p class="sgc-label">' + title + '</p>';
+            html += '<p class="sgc-label-playing">' + abbreviateNumber(g.visits || 0) + ' visits</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    async function loadProfileCreations() {
+        var container = document.getElementById('creationsContent');
+        if (!container) return;
+        try {
+            var profileId = getPathId();
+            if (!profileId && currentProfile) profileId = currentProfile.id;
+            if (profileId && /^\d+$/.test(profileId)) {
+                var res = await supabaseFetch(API_URL + '/profiles?select=id&user_number=eq.' + parseInt(profileId) + '&limit=1', { headers: authHeaders() });
+                if (res && res[0]) profileId = res[0].id;
+            }
+            var games = await getUserGames(profileId);
+            profileCachedCreations = games || [];
+            renderProfileCreations();
+        } catch(e) {
+            container.innerHTML = '<p class="corvixz-empty" style="padding:30px;">Failed to load creations.</p>';
+        }
+    }
+
+    var profileCheck = setInterval(function() {
+        if (currentProfile) { clearInterval(profileCheck); loadProfile(); }
+    }, 100);
+    </script>
+</body>
+</html>

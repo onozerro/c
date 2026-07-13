@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Forum - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../../styles.css"/>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/client.js"></script>
+    <script src="../../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap forum-page-wrap corvixz-white-page">
+                    <div class="corvixz-white-panel forum-wrap">
+                        <div class="forum-view-header">
+                            <a href="/forum/">&laquo; Back to Forum</a>
+                            <h1 class="forum-view-title" id="forumViewTitle">Forum</h1>
+                            <button type="button" class="newContinueButton-0-2-31" onclick="showNewThread()">New Thread</button>
+                        </div>
+                        <table class="forum-table w-100 mt-3">
+                            <thead><tr>
+                                <th style="width:55%;">Topic</th>
+                                <th style="width:15%;" class="text-center">Author</th>
+                                <th style="width:15%;" class="text-center">Replies</th>
+                                <th style="width:15%;" class="text-center">Last Post</th>
+                            </tr></thead>
+                            <tbody id="forumThreadsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="newThreadModal">
+        <div class="modal-box">
+            <div class="modal-header"><h3>New Thread</h3><button class="modal-close" onclick="hideNewThread()">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Title</label><input type="text" id="threadTitle" maxlength="120"/></div>
+                <div class="form-group"><label>Message</label><textarea id="threadBody" rows="5" class="form-control"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="newCancelButton-0-2-27" onclick="hideNewThread()">Cancel</button>
+                <button class="newContinueButton-0-2-31" onclick="submitNewThread()">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth/auth.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/ui/include.js"></script>
+    <script>
+    var subId = null;
+    function esc(s) { var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+    async function loadForumView() {
+        subId = parseInt(new URLSearchParams(window.location.search).get('sub'), 10);
+        if (!subId) { window.location.href = 'forum.html'; return; }
+        var sub = await getForumSubcategory(subId);
+        if (sub) document.getElementById('forumViewTitle').textContent = sub.name;
+        var threads = await getForumThreads(subId);
+        var tbody = document.getElementById('forumThreadsBody');
+        if (!threads || !threads.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding:30px;color:#757575;">No threads yet.</td></tr>';
+            return;
+        }
+        var html = '';
+        threads.forEach(function(t) {
+            html += '<tr class="forum-body-row">';
+            html += '<td><a href="forum-thread.html?id=' + t.id + '" class="forum-sub-link fw-bold">' + esc(t.title) + '</a></td>';
+            html += '<td class="text-center">' + esc(t.author && t.author.username || 'Unknown') + '</td>';
+            html += '<td class="text-center">—</td>';
+            html += '<td class="text-center">' + new Date(t.updated_at || t.created_at).toLocaleDateString() + '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    function showNewThread() {
+        if (!currentProfile) { alert('Login required.'); return; }
+        document.getElementById('newThreadModal').classList.add('show');
+    }
+    function hideNewThread() { document.getElementById('newThreadModal').classList.remove('show'); }
+
+    async function submitNewThread() {
+        var title = document.getElementById('threadTitle').value.trim();
+        var body = document.getElementById('threadBody').value.trim();
+        if (!title || !body) { alert('Enter title and message.'); return; }
+        try {
+            var id = await createForumThread(subId, title, body);
+            hideNewThread();
+            if (id) window.location.href = 'forum-thread.html?id=' + id;
+            else loadForumView();
+        } catch(e) { alert('Error: ' + (e.message || 'Failed')); }
+    }
+
+    var check = setInterval(function() { if (typeof getForumThreads === 'function') { clearInterval(check); loadForumView(); } }, 50);
+    </script>
+</body>
+</html>
+

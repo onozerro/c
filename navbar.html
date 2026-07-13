@@ -1,0 +1,48 @@
+<nav class="navbar">
+    <button class="hamburger" type="button" onclick="openSidebar()" aria-label="Menu"><span class="icon-nav-menu"></span></button>
+    <a href="/home/" class="nav-logo"><img src="/images/logo/logo17.png" alt="CORVIXZ"></a>
+    <div class="nav-links">
+        <a href="/games/">Games</a>
+        <a href="/catalog/">Catalog</a>
+        <a href="/develop/">Develop</a>
+        <a href="/forum/">Forum</a>
+    </div>
+    <div class="nav-search">
+        <div class="nav-search-wrap">
+            <input type="text" class="nav-search-input" placeholder="Search">
+            <span class="icon-nav-search"></span>
+        </div>
+    </div>
+    <div class="nav-right">
+        <span class="nav-username" id="navUsername">User: 13+</span>
+        <span id="navRobux"></span>
+        <a href="/messages/" class="nav-icon"><span class="icon-nav-message nav-icon-white"></span></a>
+        <div class="settings-dropdown">
+            <a href="#" class="nav-icon" onclick="toggleSettings(event)"><span class="icon-nav-settings nav-icon-white"></span></a>
+            <div class="nav-settings-menu" id="settingsDropdown">
+                <p class="nav-settings-item"><a href="/settings/">Settings</a></p>
+                <p class="nav-settings-item" id="navAdminLinkWrap" style="display:none;"><a href="/admin/" id="navAdminLink">Admin</a></p>
+                <p class="nav-settings-item"><a href="#" onclick="event.preventDefault();logoutUser();">Logout</a></p>
+            </div>
+        </div>
+    </div>
+</nav>
+<div id="sidebar">
+    <div class="sidebar-body">
+        <p class="sidebar-username" id="sidebarUsername">User</p>
+        <div class="sidebar-divider"></div>
+        <a href="/home/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-home"></span><span class="sidebar-link-text">Home</span></a>
+        <a href="/profile/" class="sidebar-link" id="sidebarProfile"><span class="corvixz-nav-icon icon-nav-profile"></span><span class="sidebar-link-text">Profile</span></a>
+        <a href="/messages/" class="sidebar-link sidebar-link-notif" id="sidebarMessagesLink"><span class="sidebar-link-main"><span class="corvixz-nav-icon icon-nav-message"></span><span class="sidebar-link-text">Messages</span></span><span class="sidebar-nav-badge" id="sidebarMsgBadge" hidden>0</span></a>
+        <a href="/friends/" class="sidebar-link sidebar-link-notif" id="sidebarFriendsLink"><span class="sidebar-link-main"><span class="corvixz-nav-icon icon-nav-friends"></span><span class="sidebar-link-text">Friends</span></span><span class="sidebar-nav-badge" id="sidebarFriendsBadge" hidden>0</span></a>
+        <a href="/avatar/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-charactercustomizer"></span><span class="sidebar-link-text">Character</span></a>
+        <a href="/inventory/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-inventory"></span><span class="sidebar-link-text">Inventory</span></a>
+        <a href="/trade/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-trade"></span><span class="sidebar-link-text">Trade</span></a>
+        <a href="/groups/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-group"></span><span class="sidebar-link-text">Groups</span></a>
+        <a href="/forum/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-forum"></span><span class="sidebar-link-text">Forums</span></a>
+        <a href="/download/" class="sidebar-link"><span class="corvixz-nav-icon icon-nav-shop"></span><span class="sidebar-link-text">Download</span></a>
+        <a href="/admin/" class="sidebar-link" id="sidebarAdminLink" style="display:none;"><span class="corvixz-nav-icon icon-nav-profile"></span><span class="sidebar-link-text">Admin</span></a>
+        <a href="#" class="sidebar-upgrade-btn">Upgrade Now</a>
+    </div>
+</div>
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>

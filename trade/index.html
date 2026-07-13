@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>My Trades - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/security.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap trades-page-wrap corvixz-white-page">
+                    <div class="money-container-2016">
+                        <div class="vtabs-row money-vtabs">
+                            <div class="vtabs-tab" data-mtab="transactions" onclick="switchMoneyTab(this)">My Transactions</div>
+                            <div class="vtabs-tab" data-mtab="summary" onclick="switchMoneyTab(this)">Summary</div>
+                            <div class="vtabs-tab" data-mtab="currency" onclick="switchMoneyTab(this)">Trade Currency</div>
+                            <div class="vtabs-tab selected" data-mtab="items" onclick="switchMoneyTab(this)">Trade Items</div>
+                        </div>
+                        <div class="vtabs-spacer"></div>
+                        <div id="moneyTabContent"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <div class="trade-modal-overlay" id="tradeModal" style="display:none;">
+        <div class="trade-modal-panel" style="width:700px;height:425px;overflow:auto;">
+            <button type="button" class="trade-modal-close" onclick="closeTradeModal()">&times;</button>
+            <h3 class="trade-modal-title">Trade Request</h3>
+            <div id="tradeModalBody"></div>
+        </div>
+    </div>
+
+
+    <div class="trade-modal-overlay" id="tradeWindow" style="display:none;">
+        <div class="trade-window-panel">
+            <div id="tradeWindowBody"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var allTrades = [];
+    var moneyTab = 'items';
+    var tradeType = 'inbound';
+    var selectedTrade = null;
+
+    function esc(s) {
+        if (window.CRVZSec && CRVZSec.esc) return CRVZSec.esc(s);
+        if (s == null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
+
+    function getInboundCount() {
+        return allTrades.filter(function (t) {
+            return t.receiver_id === currentProfile.id && t.status === 'pending';
+        }).length;
+    }
+
+    function switchMoneyTab(el) {
+        document.querySelectorAll('.money-vtabs .vtabs-tab').forEach(function (t) { t.classList.remove('selected'); });
+        el.classList.add('selected');
+        moneyTab = el.getAttribute('data-mtab');
+        renderMoneyTab();
+    }
+
+    function renderMoneyTab() {
+        var el = document.getElementById('moneyTabContent');
+        if (moneyTab === 'transactions') {
+            el.innerHTML = '<p class="corvixz-empty mt-3">No transactions to show.</p>';
+            return;
+        }
+        if (moneyTab === 'summary') {
+            el.innerHTML = '<p class="corvixz-empty mt-3">Summary coming soon.</p>';
+            return;
+        }
+        if (moneyTab === 'currency') {
+            el.innerHTML = '<p class="corvixz-empty mt-3">Trade currency coming soon.</p>';
+            return;
+        }
+        renderTradesTable();
+    }
+
+    function formatTradeDate(d) {
+        if (!d) return '—';
+        var dt = new Date(d);
+        return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + String(dt.getFullYear()).slice(-2);
+    }
+
+    function getStatusLabel(t) {
+        var iAmReceiver = t.receiver_id === currentProfile.id;
+        if (t.status === 'pending') {
+            if (iAmReceiver) return 'Pending approval from you';
+            return 'Pending approval from ' + esc(t.receiver && t.receiver.username || 'user');
+        }
+        if (t.status === 'accepted') return 'Finished';
+        if (t.status === 'declined') return 'Declined';
+        if (t.status === 'cancelled') return 'Cancelled';
+        return esc(t.status);
+    }
+
+    function robuxText(n) {
+        n = Number(n) || 0;
+        if (n <= 0) return '';
+        return robuxHtml(n, 12);
+    }
+
+    function renderTradesTable() {
+        var el = document.getElementById('moneyTabContent');
+        var data = allTrades.filter(function (t) {
+            if (tradeType === 'inbound') return t.receiver_id === currentProfile.id && t.status === 'pending';
+            if (tradeType === 'outbound') return t.sender_id === currentProfile.id && t.status === 'pending';
+            if (tradeType === 'completed') return t.status === 'accepted';
+            return t.status === 'declined' || t.status === 'cancelled';
+        });
+        var inboundCount = getInboundCount();
+        var html = '<div class="row mt-2"><div class="col-12 col-lg-10 d-flex align-items-center flex-wrap">';
+        html += '<p class="d-inline fw-700 trades-type-label mb-1">Trade Type:</p>';
+        html += '<select class="ms-2 trades-type-select mb-1" onchange="tradeType=this.value;renderTradesTable()">';
+        html += '<option value="inbound"' + (tradeType === 'inbound' ? ' selected' : '') + '>Inbound (' + inboundCount + ')</option>';
+        html += '<option value="outbound"' + (tradeType === 'outbound' ? ' selected' : '') + '>Outbound</option>';
+        html += '<option value="completed"' + (tradeType === 'completed' ? ' selected' : '') + '>Completed</option>';
+        html += '<option value="inactive"' + (tradeType === 'inactive' ? ' selected' : '') + '>Inactive</option>';
+        html += '</select>';
+        html += '<span class="ms-2 trades-help-link"><a href="#" onclick="return false;">How do I send a trade?</a></span>';
+        html += '</div></div>';
+        html += '<div class="row mt-2"><div class="col-12 col-lg-10"><table class="trades-table w-100">';
+        html += '<thead><tr><th>Date</th><th>Expires</th><th>Trade Partner</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+        if (!data.length) {
+            html += '</tbody></table><p class="mt-4 text-center trades-empty-msg">No trades available</p>';
+        } else {
+            data.forEach(function (t) {
+                var partner = t.sender_id === currentProfile.id ? t.receiver : t.sender;
+                html += '<tr><td>' + formatTradeDate(t.created_at) + '</td>';
+                html += '<td>—</td><td class="trades-partner-cell">';
+                html += '<img src="' + esc(partner && partner.headshot_url || 'images/avatar/ava2.png') + '" alt="" class="trades-partner-avatar"/>';
+                html += '<span class="trades-partner-name">' + esc(partner && partner.username || 'Unknown') + '</span></td>';
+                html += '<td>' + esc(getStatusLabel(t)) + '</td>';
+                html += '<td><span class="trades-view-details" onclick="openTradeModal(\'' + esc(t.id) + '\')">View Details</span></td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        html += '</div></div>';
+        el.innerHTML = html;
+    }
+
+    function renderTradeItemRow(items, robuxAmount, placeholderCount) {
+        var html = '<div class="tw-item-row">';
+        var shown = 0;
+        if (items && items.length) {
+            items.forEach(function (it) {
+                html += '<div class="tw-trade-item" data-avg="' + (it.recentAveragePrice || 0) + '" data-orig="' + (it.originalPrice || 0) + '" data-serial="' + (it.serialNumber || '') + '" data-stock="' + (it.assetStock || '') + '" data-aid="' + (it.assetId || '') + '" data-name="' + esc(it.name || '') + '" data-inv="' + (it.inventoryId || it.id || '') + '" onmouseenter="expandTradeItem(this)" onmouseleave="collapseTradeItem(this)">';
+                html += '<p class="tw-item-label text-truncate"><a href="/item/' + esc(it.assetId || '') + '">' + esc(it.name || 'Item') + '</a></p>';
+                html += '<div class="tw-item-img-wrap"><img src="' + esc(it.image_url || 'images/avatar/ava2.png') + '" alt=""/></div>';
+                html += '</div>';
+                shown++;
+            });
+        }
+        if (robuxAmount > 0) {
+            html += '<div class="tw-trade-item tw-trade-item-robux">';
+            html += '<p class="tw-item-label text-center">' + robuxHtml(robuxAmount, 8) + '</p>';
+            html += '<div class="tw-item-img-wrap"><img src="../images/icons/img-robux.png" alt="R$"/></div>';
+            html += '</div>';
+            shown++;
+        }
+        var empty = (placeholderCount || 5) - shown;
+        for (var i = 0; i < empty; i++) {
+            html += '<div class="tw-trade-item tw-trade-item-empty"></div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function expandTradeItem(el) {
+        el.classList.add('tw-item-expanded');
+    }
+    function collapseTradeItem(el) {
+        el.classList.remove('tw-item-expanded');
+    }
+
+    function openTradeModal(id) {
+        selectedTrade = allTrades.find(function (t) { return t.id === id; });
+        if (!selectedTrade) return;
+        var t = selectedTrade;
+        var iAmSender = t.sender_id === currentProfile.id;
+        var iAmReceiver = t.receiver_id === currentProfile.id;
+        var isInbound = iAmReceiver && t.status === 'pending';
+        var isOutbound = iAmSender && t.status === 'pending';
+        var partner = iAmSender ? t.receiver : t.sender;
+        var giveItems = iAmSender ? (t.senderItems || []) : (t.receiverItems || []);
+        var getItems = iAmSender ? (t.receiverItems || []) : (t.senderItems || []);
+        var giveRobux = iAmSender ? (t.sender_rocoin || 0) : (t.receiver_rocoin || 0);
+        var getRobux = iAmSender ? (t.receiver_rocoin || 0) : (t.sender_rocoin || 0);
+        var isOpen = t.status === 'pending';
+
+        var labelGiving, labelReceiving;
+        if (isOpen) {
+            labelGiving = 'ITEMS YOU WILL GIVE';
+            labelReceiving = 'ITEMS YOU WILL RECEIVE';
+        } else if (t.status === 'declined' || t.status === 'cancelled') {
+            labelGiving = 'ITEMS YOU WOULD HAVE GIVEN';
+            labelReceiving = 'ITEMS YOU WOULD HAVE RECEIVED';
+        } else {
+            labelGiving = 'ITEMS YOU GAVE';
+            labelReceiving = 'ITEMS YOU RECEIVED';
+        }
+
+        var giveValue = giveRobux;
+        giveItems.forEach(function (it) { giveValue += Number(it.recentAveragePrice || it.price || 0) || 0; });
+        var getValue = getRobux;
+        getItems.forEach(function (it) { getValue += Number(it.recentAveragePrice || it.price || 0) || 0; });
+
+        var html = '<div class="row pt-3 pb-3 ps-4 pe-0">';
+        html += '<div class="col-3 divider-right text-center">';
+        html += '<img src="' + esc(partner && partner.headshot_url || 'images/avatar/ava2.png') + '" class="trade-modal-avatar" alt=""/>';
+        html += '<p class="mb-0 mt-2 font-size-15 fw-700 text-center">';
+        if (isOpen) {
+            html += 'Trade with <strong>' + esc(partner && partner.username || 'Unknown') + '</strong> has been opened.';
+        } else if (t.status === 'accepted') {
+            html += 'Trade with <strong>' + esc(partner && partner.username || 'Unknown') + '</strong> is Finished';
+        } else if (t.status === 'pending') {
+            html += 'Trade with <strong>' + esc(partner && partner.username || 'Unknown') + '</strong> is Pending';
+        } else {
+            html += 'Trade with <strong>' + esc(partner && partner.username || 'Unknown') + '</strong> was ' + esc(t.status) + '!';
+        }
+        html += '</p>';
+        html += '</div>';
+        html += '<div class="col-9">';
+        html += '<div class="row"><div class="col-8"><p class="fw-700 font-size-15 mb-1">' + labelGiving + '</p></div>';
+        html += '<div class="col-4"><p class="tw-value-float"><span class="fw-700 pe-2">Value:</span>' + robuxHtml(giveValue, 12) + '</p></div></div>';
+        html += renderTradeItemRow(giveItems, giveRobux, 5);
+        html += '<div class="divider-top my-2"></div>';
+        html += '<div class="row"><div class="col-8"><p class="fw-700 font-size-15 mb-1">' + labelReceiving + '</p></div>';
+        html += '<div class="col-4"><p class="tw-value-float"><span class="fw-700 pe-2">Value:</span>' + robuxHtml(getValue, 12) + '</p></div></div>';
+        html += renderTradeItemRow(getItems, getRobux, 5);
+        html += '</div>';
+
+        html += '<div class="col-12">';
+        if (isOpen || true) {
+            html += '<div class="row mt-4"><div class="col-8 offset-2"><div class="row">';
+            if (isOpen && isInbound) {
+                html += '<div class="col-4 mx-auto"><button class="tw-btn tw-btn-accept w-100" onclick="acceptTrade(\'' + esc(t.id) + '\')">Accept</button></div>';
+                html += '<div class="col-4 mx-auto ps-0 pe-0"><button class="tw-btn tw-btn-counter w-100" onclick="startCounter(\'' + esc(t.id) + '\')">Counter</button></div>';
+                html += '<div class="col-4 mx-auto"><button class="tw-btn tw-btn-decline w-100" onclick="declineTrade(\'' + esc(t.id) + '\')">Decline</button></div>';
+            } else if (isOpen && isOutbound) {
+                html += '<div class="col-4 mx-auto ps-0 pe-0"><button class="tw-btn tw-btn-counter w-100" onclick="startCounter(\'' + esc(t.id) + '\')">Counter</button></div>';
+                html += '<div class="col-4 mx-auto"><button class="tw-btn tw-btn-decline w-100" onclick="cancelTrade(\'' + esc(t.id) + '\')">Cancel</button></div>';
+            } else {
+                html += '<div class="col-4 mx-auto"><button class="tw-btn tw-btn-accept w-100" onclick="closeTradeModal()">OK</button></div>';
+            }
+            html += '</div></div></div>';
+        }
+        html += '</div></div>';
+
+        document.getElementById('tradeModalBody').innerHTML = html;
+        document.getElementById('tradeModal').style.display = 'flex';
+    }
+
+    function closeTradeModal() {
+        document.getElementById('tradeModal').style.display = 'none';
+        selectedTrade = null;
+    }
+
+    var tw = {
+        mode: 'create',
+        tradeId: null,
+        partnerId: null,
+        partnerName: '',
+        giveRobux: 0,
+        getRobux: 0,
+        giveItems: [],
+        getItems: [],
+        myInventory: [],
+        partnerInventory: [],
+        loading: false,
+        myCategory: 'null',
+        partnerCategory: 'null'
+    };
+
+    function isMyItem(invId) {
+        return tw.giveItems.indexOf(invId) !== -1;
+    }
+    function isRequestedItem(invId) {
+        return tw.getItems.indexOf(invId) !== -1;
+    }
+
+    function startNewTrade(preset) {
+        tw.mode = 'create';
+        tw.tradeId = null;
+        tw.partnerId = null;
+        tw.giveRobux = 0;
+        tw.getRobux = 0;
+        tw.giveItems = [];
+        tw.getItems = [];
+        tw.myCategory = 'null';
+        tw.partnerCategory = 'null';
+        if (preset) {
+            resolvePartner(preset);
+        } else {
+            renderPartnerPicker();
+        }
+    }
+
+    async function resolvePartner(value) {
+        tw.loading = true;
+        renderTradeWindowSkeleton('Loading trade partner...');
+        document.getElementById('tradeWindow').style.display = 'flex';
+        try {
+            var profile = null;
+            var raw = (value || '').trim();
+            if (/^[0-9a-fA-F-]{36}$/.test(raw)) {
+                profile = await getProfile(raw);
+            } else if (/^id\s*\d+$/i.test(raw)) {
+                var num = raw.replace(/^id/i, '').trim();
+                profile = await getProfileByUserNumber(num);
+            } else if (/^\d+$/.test(raw)) {
+                profile = await getProfileByUserNumber(raw);
+            } else {
+                profile = await getProfileByUsername(raw);
+            }
+            if (!profile) throw new Error('User not found');
+            if (profile.id === currentProfile.id) throw new Error('Cannot trade with yourself');
+            if (profile.is_banned) throw new Error('This user is banned');
+            tw.partnerId = profile.id;
+            tw.partnerName = profile.username;
+            loadTradeWindow();
+        } catch (e) {
+            tw.loading = false;
+            document.getElementById('tradeWindow').style.display = 'none';
+            alert(e.message || 'Could not start trade');
+        }
+    }
+
+    function renderPartnerPicker() {
+        var html = '<p class="mb-0"><span class="font-size-18 fw-700">TRADING</span> with <em>?</em></p>';
+        html += '<p class="trade-exit" onclick="closeTradeWindow()">Exit Trading <span class="trade-exit-x">X</span></p>';
+        html += '<div class="row mt-3"><div class="col-12">';
+        html += '<p class="fw-700 font-size-14 mb-1">Enter a username or user number to trade with.</p>';
+        html += '<div class="input-group" style="max-width:420px;">';
+        html += '<input id="twPartnerInput" type="text" class="form-control" maxlength="40" placeholder="Username or #number"/>';
+        html += '<button class="corvixz-group-btn" onclick="submitPartner()">Find</button>';
+        html += '</div>';
+        html += '<p class="mt-3"><a href="#" class="trade-link-back" onclick="closeTradeWindow();return false;">&laquo; Back to trades</a></p>';
+        html += '</div></div>';
+        document.getElementById('tradeWindowBody').innerHTML = html;
+        document.getElementById('tradeWindow').style.display = 'flex';
+        var inp = document.getElementById('twPartnerInput');
+        if (inp) { inp.focus(); inp.onkeydown = function (e) { if (e.key === 'Enter') submitPartner(); }; }
+    }
+
+    function submitPartner() {
+        var v = document.getElementById('twPartnerInput').value.trim();
+        if (!v) return;
+        resolvePartner(v);
+    }
+
+    async function startCounter(tradeId) {
+        try {
+            var t = await getTrade(tradeId);
+            if (!t) throw new Error('Trade not found');
+            tw.mode = 'counter';
+            tw.tradeId = tradeId;
+            tw.partnerId = (t.sender_id === currentProfile.id) ? t.receiver_id : t.sender_id;
+            tw.partnerName = (t.sender_id === currentProfile.id) ? (t.receiver && t.receiver.username) : (t.sender && t.sender.username);
+            tw.giveRobux = (t.sender_id === currentProfile.id) ? (t.sender_rocoin || 0) : (t.receiver_rocoin || 0);
+            tw.getRobux = (t.sender_id === currentProfile.id) ? (t.receiver_rocoin || 0) : (t.sender_rocoin || 0);
+            tw.giveItems = [];
+            tw.getItems = [];
+            if (t.senderItems) {
+                t.senderItems.forEach(function (it) {
+                    var oid = it.ownerId || (it.owner && it.owner.id);
+                    var iid = it.inventoryId || it.id;
+                    if (oid === currentProfile.id) tw.giveItems.push(iid);
+                    else if (oid === tw.partnerId) tw.getItems.push(iid);
+                });
+            }
+            if (t.receiverItems) {
+                t.receiverItems.forEach(function (it) {
+                    var oid = it.ownerId || (it.owner && it.owner.id);
+                    var iid = it.inventoryId || it.id;
+                    if (oid === currentProfile.id) tw.giveItems.push(iid);
+                    else if (oid === tw.partnerId) tw.getItems.push(iid);
+                });
+            }
+            loadTradeWindow();
+        } catch (e) {
+            alert(e.message || 'Could not open counter');
+        }
+    }
+
+    function isLimited(entry) {
+        var it = entry.item || {};
+        return !!(it.is_limited || it.is_limited_unique);
+    }
+
+    async function loadTradeWindow() {
+        tw.loading = true;
+        renderTradeWindowSkeleton('Loading inventories...');
+        document.getElementById('tradeWindow').style.display = 'flex';
+        try {
+            var mine = await getTradableInventory(currentProfile.id);
+            var theirs = await getTradableInventory(tw.partnerId);
+            tw.myInventory = (mine || []);
+            tw.partnerInventory = (theirs || []);
+            tw.loading = false;
+            renderTradeWindow();
+        } catch (e) {
+            tw.loading = false;
+            document.getElementById('tradeWindowBody').innerHTML =
+                '<p class="mb-0">' + esc(e.message || 'Failed to load inventories') + '</p>' +
+                '<p class="mt-2"><a href="#" class="trade-link-back" onclick="closeTradeWindow();return false;">&laquo; Back to trades</a></p>';
+        }
+    }
+
+    function renderTradeWindowSkeleton(msg) {
+        document.getElementById('tradeWindowBody').innerHTML = '<p class="mb-0 font-size-14">' + esc(msg) + '</p>';
+    }
+
+    function filterInventory(list, cat) {
+        if (!cat || cat === 'null') return list;
+        var typeId = parseInt(cat, 10);
+        return list.filter(function (e) {
+            var it = e.item || {};
+            return it.asset_type_id === typeId || it.type_id === typeId;
+        });
+    }
+
+    function renderTradeWindow() {
+        var html = '';
+        html += '<div class="row"><div class="col-6"><p class="mb-0"><span class="font-size-18 fw-700">TRADING</span> with ' + esc(tw.partnerName) + '</p></div>';
+        html += '<div class="col-6"><p class="trade-exit" onclick="closeTradeWindow()">Exit Trading <span class="trade-exit-x">X</span></p></div></div>';
+        html += '<div class="row mt-3">';
+        html += '<div class="col-4">';
+        html += '<div class="trade-offer-card">';
+        html += renderOfferRequest('give');
+        html += '<div class="mt-4 mb-4"><div class="row"><div class="col-12"><div class="divider-top"></div></div></div></div>';
+        html += renderOfferRequest('get');
+        html += '<div class="mt-4 mb-4"></div>';
+        html += '<div class="trade-send-wrap">';
+        if (tw.mode === 'counter') {
+            html += '<button class="corvixz-group-btn trade-send-btn" onclick="saveCounter()">Save Counter</button>';
+        } else {
+            html += '<button class="corvixz-group-btn trade-send-btn" onclick="sendTrade()">Send Request</button>';
+        }
+        html += '</div>';
+        html += '</div>';
+        html += '<div id="twFeedback"></div>';
+        html += '</div>';
+        html += '<div class="col-8">';
+
+        html += '<div class="row"><div class="col-6"><h3 class="font-size-14 fw-600 mb-0">My Inventory</h3></div>';
+        html += '<div class="col-6"><div class="tw-cat-wrap"><span class="tw-cat-label">Category:</span> ';
+        html += '<select class="tw-cat-select" onchange="tw.myCategory=this.value;renderInventoryGrid(\'twMyGrid\',tw.myInventory,\'give\')">';
+        var cats = [{v:'null',l:'All'},{v:'8',l:'Hats'},{v:'41',l:'Hair'},{v:'42',l:'Face'},{v:'43',l:'Neck'},{v:'44',l:'Shoulders'},{v:'45',l:'Front'},{v:'46',l:'Back'},{v:'47',l:'Waist'},{v:'19',l:'Gear'},{v:'18',l:'Faces'}];
+        cats.forEach(function (c) {
+            html += '<option value="' + c.v + '"' + (tw.myCategory === c.v ? ' selected' : '') + '>' + esc(c.l) + '</option>';
+        });
+        html += '</select></div></div></div>';
+        html += '<div id="twMyGrid" class="trade-inv-grid-stacked"></div>';
+        html += '<div class="divider-top my-3"></div>';
+
+        html += '<div class="row"><div class="col-6"><h3 class="font-size-14 fw-600 mb-0">' + esc(tw.partnerName) + '\'s Inventory</h3></div>';
+        html += '<div class="col-6"><div class="tw-cat-wrap"><span class="tw-cat-label">Category:</span> ';
+        html += '<select class="tw-cat-select" onchange="tw.partnerCategory=this.value;renderInventoryGrid(\'twPartnerGrid\',tw.partnerInventory,\'get\')">';
+        cats.forEach(function (c) {
+            html += '<option value="' + c.v + '"' + (tw.partnerCategory === c.v ? ' selected' : '') + '>' + esc(c.l) + '</option>';
+        });
+        html += '</select></div></div></div>';
+        html += '<div id="twPartnerGrid" class="trade-inv-grid-stacked"></div>';
+
+        html += '</div></div>';
+        html += '<div class="row"><div class="col-12"><p class="mb-0 fw-400 font-size-12 mt-2"><span class="fw-700">*</span> A 30% fee will be taken from the amount.</p></div></div>';
+
+        document.getElementById('tradeWindowBody').innerHTML = html;
+        renderInventoryGrid('twMyGrid', tw.myInventory, 'give');
+        renderInventoryGrid('twPartnerGrid', tw.partnerInventory, 'get');
+    }
+
+    function renderOfferRequest(kind) {
+        var list = kind === 'give' ? tw.giveItems : tw.getItems;
+        var label = kind === 'give' ? 'Your Offer' : 'Your Request';
+        var robuxVal = kind === 'give' ? tw.giveRobux : tw.getRobux;
+        var entries = kind === 'give' ? tw.myInventory : tw.partnerInventory;
+        var valueSum = Number(robuxVal) || 0;
+        list.forEach(function (invId) {
+            var e = entries.find(function (x) { return x.id === invId; });
+            if (e && e.item && e.item.price) valueSum += (Number(e.item.price) || 0);
+        });
+        var html = '<div class="row"><div class="col-6"><h3 class="font-size-15 fw-700 mb-0">' + label + '</h3></div>';
+        html += '<div class="col-6"><p class="trade-value-text"><span class="pe-2">Value:</span>' + robuxHtml(valueSum, 12) + '</p></div></div>';
+        html += '<div class="row trade-or-row">';
+        for (var i = 0; i < MAX_TRADE_ITEMS_PER_SIDE; i++) {
+            var invId = list[i];
+            html += '<div class="col-3 ps-0 pe-0">';
+            if (invId) {
+                var e = entries.find(function (x) { return x.id === invId; });
+                var name = e && e.item ? e.item.name : 'Item';
+                var img = e && e.item ? e.item.image_url : 'images/avatar/ava2.png';
+                html += '<div class="card trade-slot trade-slot-remove" onclick="toggleItem(\'' + kind + '\',\'' + esc(invId) + '\')" title="Click to remove"><img src="' + esc(img) + '" alt="' + esc(name) + '"/></div>';
+            } else {
+                html += '<div class="card trade-slot trade-slot-empty"></div>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        html += '<div class="row mt-2 mb-3"><div class="col-12"><div class="trade-plus-inline">';
+        html += '<p class="mb-0">Plus <img src="../images/icons/img-robux.png" class="trade-robux-icon" alt="R"/></p>';
+        html += '<input type="number" min="0" value="' + (robuxVal || 0) + '" class="trade-robux-input" oninput="tw.' + (kind === 'give' ? 'giveRobux' : 'getRobux') + '=clampRobux(this.value)"/>';
+        html += '<span class="ps-1 trade-fee-star">*</span>';
+        html += '</div></div></div>';
+        return html;
+    }
+
+    function renderInventoryGrid(gridId, entries, kind) {
+        var grid = document.getElementById(gridId);
+        if (!grid) return;
+        var cat = kind === 'give' ? tw.myCategory : tw.partnerCategory;
+        var filtered = filterInventory(entries, cat);
+        if (!filtered || !filtered.length) {
+            grid.innerHTML = '<p class="text-center mt-3 font-size-13 text-secondary">No tradable limited items.</p>';
+            return;
+        }
+        var maxReached = (kind === 'give' ? tw.giveItems.length : tw.getItems.length) >= MAX_TRADE_ITEMS_PER_SIDE;
+        var html = '';
+        if (filtered.length > 1) html += '<div class="tw-inv-row">';
+        filtered.forEach(function (e) {
+            var invId = e.id;
+            var selected = kind === 'give' ? isMyItem(invId) : isRequestedItem(invId);
+            var disabled = !selected && maxReached;
+            var it = e.item || {};
+            var avg = it.price || 0;
+            html += '<div class="tw-inv-entry">';
+            html += '<div class="tw-inv-card' + (selected ? ' tw-inv-selected' : '') + (disabled ? ' tw-inv-disabled' : '') + '" onclick="' + (disabled ? '' : 'toggleItem(\'' + kind + '\',\'' + esc(invId) + '\')') + '" onmouseenter="twInvHover(this)" onmouseleave="twInvUnhover(this)">';
+            html += '<p class="tw-inv-name">' + esc(it.name || 'Item') + '</p>';
+            html += '<div class="tw-inv-img-wrap"><img src="' + esc(it.image_url || 'images/avatar/ava2.png') + '" alt=""/></div>';
+            html += '<div class="tw-inv-hover" style="display:none;">';
+            html += '<p class="tw-inv-stat"><span class="fw-700">Avg. Price: </span>' + robuxHtml(avg, 8) + '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        if (filtered.length > 1) html += '</div>';
+        grid.innerHTML = html;
+    }
+
+    function twInvHover(el) {
+        el.classList.add('tw-inv-expanded');
+        var hover = el.querySelector('.tw-inv-hover');
+        if (hover) hover.style.display = '';
+    }
+    function twInvUnhover(el) {
+        el.classList.remove('tw-inv-expanded');
+        var hover = el.querySelector('.tw-inv-hover');
+        if (hover) hover.style.display = 'none';
+    }
+
+    function toggleItem(kind, invId) {
+        var list = kind === 'give' ? tw.giveItems : tw.getItems;
+        var idx = list.indexOf(invId);
+        if (idx !== -1) {
+            list.splice(idx, 1);
+            if (tw.mode === 'counter') removeTradeItemLive(tw.tradeId, invId);
+        } else {
+            if (list.length >= MAX_TRADE_ITEMS_PER_SIDE) {
+                setTwFeedback('You can only include up to ' + MAX_TRADE_ITEMS_PER_SIDE + ' items per side.');
+                return;
+            }
+            list.push(invId);
+            if (tw.mode === 'counter') addTradeItemLive(tw.tradeId, invId);
+        }
+        renderTradeWindow();
+    }
+
+    function clampRobux(v) {
+        var n = parseInt(v, 10);
+        if (isNaN(n) || n < 0) return 0;
+        if (n > 100000000) return 100000000;
+        return n;
+    }
+
+    function setTwFeedback(msg) {
+        var el = document.getElementById('twFeedback');
+        if (el) el.innerHTML = msg ? '<div class="trade-feedback">' + esc(msg) + '</div>' : '';
+    }
+
+    async function addTradeItemLive(tradeId, invId) {
+        try { await addTradeItem(tradeId, invId); }
+        catch (e) { setTwFeedback(e.message || 'Failed to add item'); }
+    }
+    async function removeTradeItemLive(tradeId, invId) {
+        try { await removeTradeItem(tradeId, invId); }
+        catch (e) { setTwFeedback(e.message || 'Failed to remove item'); }
+    }
+
+    async function sendTrade() {
+        if (tw.loading) return;
+        setTwFeedback('');
+        if (tw.giveItems.length < 1 || tw.getItems.length < 1) {
+            setTwFeedback('You must offer and request at least one item.');
+            return;
+        }
+        tw.loading = true;
+        try {
+            await createTrade(tw.partnerId, tw.giveRobux, tw.getRobux, '', tw.giveItems, tw.getItems);
+            alert('Your trade request has been sent.');
+            closeTradeWindow();
+            loadTradesPage();
+        } catch (e) {
+            tw.loading = false;
+            setTwFeedback(e.message || 'Failed to send trade');
+        }
+    }
+
+    async function saveCounter() {
+        if (tw.loading) return;
+        tw.loading = true;
+        setTwFeedback('');
+        try {
+            if (tw.giveItems.length < 1 || tw.getItems.length < 1) {
+                setTwFeedback('You must offer and request at least one item.');
+                tw.loading = false;
+                return;
+            }
+            alert('Counter trade has been saved.');
+            closeTradeWindow();
+            loadTradesPage();
+        } catch (e) {
+            tw.loading = false;
+            setTwFeedback(e.message || 'Failed to save counter');
+        }
+    }
+
+    function closeTradeWindow() {
+        document.getElementById('tradeWindow').style.display = 'none';
+        tw.mode = 'create';
+        tw.tradeId = null;
+        tw.partnerId = null;
+        tw.partnerName = '';
+        tw.giveRobux = 0;
+        tw.getRobux = 0;
+        tw.giveItems = [];
+        tw.getItems = [];
+        tw.myInventory = [];
+        tw.partnerInventory = [];
+    }
+
+    async function loadTradesPage() {
+        if (!currentProfile) return;
+        try {
+            allTrades = await getTrades(currentProfile.id);
+            renderMoneyTab();
+            var partner = getQueryParam('partner');
+            if (partner && !getQueryParam('trade')) {
+                if (!window.__tradeOpened) {
+                    window.__tradeOpened = true;
+                    startNewTrade(partner);
+                }
+            }
+        } catch (e) {
+            document.getElementById('moneyTabContent').innerHTML = '<p class="corvixz-empty">Error loading trades.</p>';
+        }
+    }
+
+    async function acceptTrade(id) {
+        try { await updateTradeStatus(id, 'accepted'); closeTradeModal(); loadTradesPage(); }
+        catch (e) { alert(e.message || 'Failed'); }
+    }
+    async function declineTrade(id) {
+        try { await updateTradeStatus(id, 'declined'); closeTradeModal(); loadTradesPage(); }
+        catch (e) { alert(e.message || 'Failed'); }
+    }
+    async function cancelTrade(id) {
+        try { await updateTradeStatus(id, 'cancelled'); closeTradeModal(); loadTradesPage(); }
+        catch (e) { alert(e.message || 'Failed'); }
+    }
+
+    var check = setInterval(function () { if (currentProfile) { clearInterval(check); loadTradesPage(); } }, 100);
+    </script>
+</body>
+</html>

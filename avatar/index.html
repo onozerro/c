@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Character Customizer - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <style>
+        .ch-wrap { max-width:970px; margin:0 auto; }
+        .ch-hdr { font-weight:700; font-size:30px; margin:0; }
+        .ch-box { background:#fff; padding:4px 8px; overflow:hidden; }
+        .ch-avatar-h2 { font-size:24px; font-weight:700; }
+        .ch-avatar-box { width:277px; }
+        .ch-avatar-img { width:277px; height:352px; display:block; background:#e0e0e0; object-fit:contain; }
+        .ch-color-h2 { font-weight:400; font-size:24px; margin:0; }
+        .ch-color-head { width:60px; height:50px; margin:0 auto; display:block; border:1px solid #dededd; background:#b2b3b3; }
+        .ch-color-torso { width:120px; height:110px; margin:10px auto 0; display:block; position:relative; border:1px solid #dededd; background:#b2b3b3; }
+        .ch-color-limb { width:40px; height:110px; display:block; position:absolute; top:0; border:1px solid #dededd; background:#b2b3b3; }
+        .ch-color-legs { margin:10px auto 0; width:120px; overflow:hidden; display:block; }
+        .ch-color-leg { width:55px; height:110px; border:1px solid #dededd; background:#b2b3b3; float:left; }
+        .ch-color-leg + .ch-color-leg { float:right; }
+        .ch-tab-row { border-bottom:2px solid #c3c3c3; }
+        .ch-tab { display:inline-block; cursor:pointer; border-top:1px solid #9e9e9e; border-left:1px solid #9e9e9e; border-right:1px solid #9e9e9e; margin-right:4px; user-select:none; }
+        .ch-tab-sel { background:white; }
+        .ch-tab-unsel { background:#d6d6d6; padding-top:5px; }
+        .ch-tab-unsel:hover { background:#e8e8e8; }
+        .ch-tab-label { font-size:16px; padding:10px 5px 8px; margin-bottom:0; font-weight:600; }
+        .ch-tab-spacer { width:100%; height:5px; background:white; margin-bottom:-5px; }
+        .ch-cat-wrap { margin:0 auto; }
+        .ch-cat-entry { cursor:pointer; color:#0055b3; text-align:center; margin-bottom:0; font-size:13px; }
+        .ch-cat-sel { font-weight:700; color:#0055b3; }
+        .ch-item-grid { display:flex; flex-wrap:wrap; margin-top:4px; margin-left:-15px; margin-right:-15px; }
+        .ch-item-cell { width:25%; margin-top:24px; padding:0 15px; box-sizing:border-box; }
+        .ch-item-cell:nth-child(-n+4) { margin-top:0; }
+        .ch-item-img-wrap { display:block; margin:0 auto; max-width:100px; }
+        .ch-item-btn-wrap { position:relative; }
+        .ch-item-thumb-wrap { margin-top:-10px; }
+        .ch-item-img { display:block; width:100%; height:auto; padding-top:20px; margin:0 auto; }
+        .ch-item-name { font-weight:700; margin:0; height:36px; overflow:hidden; font-size:14px; }
+        .ch-item-name a { color:#0055b3; cursor:pointer; }
+        .ch-item-name a:hover { text-decoration:underline; }
+        .ch-item-type { font-size:12px; height:18px; }
+        .ch-type-label { font-weight:600; color:#666; }
+        .ch-type-val { color:#0055b3; }
+        .ch-item-btn { float:right; font-size:12px; padding:2px 13px 3px; width:auto; margin-bottom:-25px; font-weight:normal; display:block; text-align:center; color:white; }
+        .ch-empty { color:#666; text-align:center; margin-top:16px; font-size:14px; }
+        .ch-cw-h2 { font-size:24px; margin:0; font-weight:400; }
+        #chCurrentlyWearing { margin-top:20px; }
+        .ch-cw-img { display:block; width:100%; height:auto; padding-top:20px; margin:0 auto; }
+        .ch-cw-name { font-size:14px; font-weight:700; overflow:hidden; height:36px; margin:0; }
+        .ch-cw-name a { color:#0055b3; cursor:pointer; }
+        .ch-cw-name a:hover { text-decoration:underline; }
+        .ch-cw-type { font-size:12px; }
+        .ch-cw-type .ch-type-label { font-weight:600; color:#666; }
+        .ch-cw-type .ch-type-val { color:#0055b3; }
+        .ch-page-text { text-align:center; margin-bottom:0; user-select:none; margin-top:8px; font-size:13px; }
+        .ch-page-on { cursor:pointer; color:#0055b3; }
+        .ch-page-on:hover { text-decoration:underline; }
+        .ch-page-off { color:#888; cursor:default; }
+        .continueButton-0-2-26 { padding:2px 13px 2px; font-size:12px; color:white; border:1px solid #084ea6; background:linear-gradient(0deg,#084fc0,#0567ea); cursor:pointer; font-family:'Source Sans Pro',Arial; }
+        .continueButton-0-2-26:hover { background:linear-gradient(0deg,#0249c6,#0793fd); }
+        .continueButton-0-2-26:disabled { opacity:0.5; cursor:default; }
+        .cancelButton-0-2-26 { padding:2px 13px 2px; font-size:12px; color:white; border:1px solid #404041; background:linear-gradient(0deg,#454545,#8c8c8c); cursor:pointer; font-family:'Source Sans Pro',Arial; }
+        .cancelButton-0-2-26:hover { background:grey; }
+        .cancelButton-0-2-26:disabled { opacity:0.5; cursor:default; }
+        .divider-top { border-top:1px solid #c3c3c3; }
+        .divider-thick { border-top-width:2px; }
+        .divider-light { border-color:#ebebeb; }
+        a { color:#0055b3; text-decoration:none; cursor:pointer; }
+        a:hover { text-decoration:underline; }
+        .ch-loading-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:50; }
+        .ch-spinner { width:40px; height:40px; border:4px solid #ccc; border-top-color:#0074BD; border-radius:50%; animation:ch-spin 0.8s linear infinite; }
+        @keyframes ch-spin { to { transform:rotate(360deg); } }
+        .ch-img-wrap { position:relative; display:inline-block; }
+        .ch-notif { position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; font-size:14px; z-index:9999; display:none; }
+    </style>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+<div id="__next"><div class="page-shell">
+    <div id="navbar-placeholder"></div>
+    <div class="container-0-2-4 ch-wrap">
+        <div id="ad-slot"></div>
+        <div class="row mt-2">
+            <div class="col-12"><h1 class="ch-hdr">Character Customizer</h1></div>
+        </div>
+        <div class="ch-box">
+            <div class="row mt-4">
+                <div class="col-auto ch-avatar-box">
+                    <h2 class="ch-avatar-h2">Avatar</h2>
+                    <div class="ch-img-wrap" id="chAvatarWrap">
+                        <img id="avatarPreviewImg" src="../images/avatar/ava2.png" class="ch-avatar-img" alt="Avatar"/>
+                    </div>
+                    <p class="mb-0 mt-1" style="font-size:13px;">Something wrong with your Avatar?</p>
+                    <p class="mb-0" style="font-size:13px;"><a id="chRedrawLink" style="pointer-events:none;color:#999;">Click here to re-draw it!</a></p>
+                    <div class="mt-4">
+                        <h2 class="ch-color-h2">Avatar Colors</h2>
+                        <div class="ch-color-head mt-1"></div>
+                        <div class="ch-color-torso">
+                            <div class="ch-color-limb" style="left:-50px;"></div>
+                            <div class="ch-color-limb" style="right:-50px;"></div>
+                        </div>
+                        <div class="ch-color-legs">
+                            <div class="ch-color-leg"></div>
+                            <div class="ch-color-leg"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col ps-4">
+                    <div class="ch-tab-row">
+                        <div class="ch-tab ch-tab-sel" data-tab="wardrobe">
+                            <p class="ch-tab-label">Wardrobe</p>
+                            <div class="ch-tab-spacer"></div>
+                        </div>
+                        <div class="ch-tab ch-tab-unsel" data-tab="outfits">
+                            <p class="ch-tab-label">Outfits</p>
+                        </div>
+                    </div>
+                    <div id="chPanelWardrobe">
+                        <p class="ch-cat-entry" id="chCatNav"></p>
+                        <p class="ch-cat-entry"><a href="/catalog/">Shop</a></p>
+                        <div id="avatarItemsArea" style="min-height:100px;"></div>
+                        <p class="ch-page-text" id="chPagination"></p>
+                    </div>
+                    <div id="chPanelOutfits" style="display:none;">
+                        <p class="ch-empty">No outfits</p>
+                    </div>
+                    <div class="divider-top divider-thick divider-light mt-4 mb-4"></div>
+                    <h2 class="ch-cw-h2">Currently Wearing</h2>
+                    <div class="ch-item-grid" id="chCurrentlyWearing"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer-placeholder"></div>
+</div></div>
+
+<div id="ch-notif" class="ch-notif"></div>
+
+<script src="../js/auth/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/ui/include.js"></script>
+<script>
+var avatarInventory = [];
+var avatarFilter = 'Hat';
+var CAT_GROUPS = [
+    { cats: [
+        { label:'Heads', type:null }, { label:'Faces', type:'Face' },
+        { label:'T-Shirts', type:null }, { label:'Shirts', type:null },
+        { label:'Pants', type:null }, { label:'Gear', type:'Gear' }
+    ]},
+    { label:'Accessories', cats: [
+        { label:'Hats', type:'Hat' }, { label:'Hair', type:'Hair' },
+        { label:'Neck', type:null }, { label:'Shoulder', type:null },
+        { label:'Front', type:null }, { label:'Back', type:null },
+        { label:'Waist', type:null }
+    ]},
+    { cats: [
+        { label:'Torsos', type:null }, { label:'L Arms', type:null },
+        { label:'R Arms', type:null }, { label:'L Legs', type:null },
+        { label:'R Legs', type:null }, { label:'Packages', type:null }
+    ]}
+];
+var AVATAR_PAGE_SIZE = 10;
+var avatarPage = 1;
+
+function sortAvatarItems(items) {
+    var sorted = items.slice();
+    if (avatarSort === 'name') sorted.sort(function(a,b) { var na=(a.item&&a.item.name)||'', nb=(b.item&&b.item.name)||''; return na.localeCompare(nb); });
+    else if (avatarSort === 'price-low') sorted.sort(function(a,b) { return ((a.item&&a.item.price)||0) - ((b.item&&b.item.price)||0); });
+    else if (avatarSort === 'price-high') sorted.sort(function(a,b) { return ((b.item&&b.item.price)||0) - ((a.item&&a.item.price)||0); });
+    else sorted.sort(function(a,b) { return new Date((b.item&&b.item.created_at)||0) - new Date((a.item&&a.item.created_at)||0); });
+    return sorted;
+}
+
+async function loadAvatarInventory() {
+    if (!currentProfile) { document.getElementById('avatarItemsArea').innerHTML = '<p class="ch-empty">Please log in.</p>'; return; }
+    try {
+        avatarInventory = await getUserInventory(currentProfile.id);
+        renderCatNav();
+        renderAvatarItems();
+        renderCW();
+    } catch(e) {
+        document.getElementById('avatarItemsArea').innerHTML = '<p class="ch-empty">Error loading inventory.</p>';
+    }
+}
+
+function renderCatNav() {
+    var el = document.getElementById('chCatNav');
+    if (!el) return;
+    var h = '';
+    CAT_GROUPS.forEach(function(g, gi) {
+        if (g.label) h += '<span style="color:#000;">' + esc(g.label) + ' </span>';
+        g.cats.forEach(function(c, ci) {
+            var sel = c.type === avatarFilter;
+            h += '<span class="' + (sel ? 'ch-cat-sel' : '') + '" data-cat="' + esc(c.type||'') + '">' + esc(c.label) + '</span>';
+            if (ci < g.cats.length - 1) h += ' | ';
+        });
+        h += '<br/>';
+    });
+    el.innerHTML = h;
+}
+
+function getFilteredItems() {
+    if (!avatarFilter) return [];
+    return avatarInventory.filter(function(entry) {
+        return entry.item && entry.item.item_type && entry.item.item_type.toLowerCase() === avatarFilter.toLowerCase();
+    });
+}
+
+function renderAvatarItems() {
+    var area = document.getElementById('avatarItemsArea');
+    var pag = document.getElementById('chPagination');
+    if (!avatarInventory || avatarInventory.length === 0) {
+        area.innerHTML = '<p class="ch-empty">You don\'t have any items yet.</p>';
+        if (pag) pag.innerHTML = '';
+        return;
+    }
+    var filtered = getFilteredItems();
+    if (filtered.length === 0) {
+        area.innerHTML = '<p class="ch-empty">No items available</p>';
+        if (pag) pag.innerHTML = '';
+        return;
+    }
+    var total = Math.ceil(filtered.length / AVATAR_PAGE_SIZE);
+    if (avatarPage > total) avatarPage = total;
+    var start = (avatarPage - 1) * AVATAR_PAGE_SIZE;
+    var page = filtered.slice(start, start + AVATAR_PAGE_SIZE);
+    var h = '<div class="ch-item-grid">';
+    page.forEach(function(entry) {
+        var item = entry.item;
+        if (!item) return;
+        var img = item.image_url || 'images/avatar/avatar.png';
+        var link = 'item.html?id=' + (item.item_number || item.id);
+        var equipped = !!entry.equipped;
+        h += '<div class="ch-item-cell">';
+        h += '<div class="ch-item-img-wrap">';
+        h += '<div class="ch-item-btn-wrap"><div><button class="' + (equipped ? 'cancelButton-0-2-26' : 'continueButton-0-2-26') + ' ch-item-btn" onclick="event.stopPropagation();toggleEquip(\'' + entry.id + '\',\'' + (item.id || '') + '\',' + (equipped ? 'false' : 'true') + ')">' + (equipped ? 'Remove' : 'Wear') + '</button></div></div>';
+        h += '<div class="ch-item-thumb-wrap"><img src="' + esc(img) + '" class="ch-item-img" onclick="window.location=\'' + link + '\'" style="cursor:pointer;"/></div>';
+        h += '</div>';
+        h += '<p class="ch-item-name"><a href="' + link + '">' + esc(item.name || '') + '</a></p>';
+        h += '<div class="ch-item-type"><span class="ch-type-label">Type: </span><span class="ch-type-val">' + esc(item.item_type || '') + '</span></div>';
+        h += '</div>';
+    });
+    h += '</div>';
+    area.innerHTML = h;
+    if (pag) {
+        if (total <= 1) { pag.innerHTML = ''; return; }
+        var ph = '<span class="' + (avatarPage <= 1 ? 'ch-page-off' : 'ch-page-on') + '" id="chPgPrev">Previous </span>';
+        ph += '<span class="ch-page-off"> ' + avatarPage + ' </span>';
+        ph += '<span class="' + (avatarPage >= total ? 'ch-page-off' : 'ch-page-on') + '" id="chPgNext"> Next</span>';
+        pag.innerHTML = ph;
+        var prev = document.getElementById('chPgPrev');
+        var next = document.getElementById('chPgNext');
+        if (prev && avatarPage > 1) prev.addEventListener('click', function() { avatarPage--; renderAvatarItems(); });
+        if (next && avatarPage < total) next.addEventListener('click', function() { avatarPage++; renderAvatarItems(); });
+    }
+}
+
+function renderCW() {
+    var el = document.getElementById('chCurrentlyWearing');
+    if (!el) return;
+    var wearing = avatarInventory.filter(function(e) { return e.equipped && e.item; });
+    if (!wearing.length) {
+        el.innerHTML = '<p style="color:#666;font-size:14px;padding-left:4px;width:100%;margin:0;">You aren\'t wearing anything</p>';
+        return;
+    }
+    var h = '';
+    wearing.forEach(function(entry) {
+        var item = entry.item;
+        var img = item.image_url || 'images/avatar/avatar.png';
+        var link = 'item.html?id=' + (item.item_number || item.id);
+        h += '<div class="ch-item-cell">';
+        h += '<div class="ch-item-img-wrap">';
+        h += '<div class="ch-item-btn-wrap"><div><button class="cancelButton-0-2-26 ch-item-btn" onclick="event.stopPropagation();toggleEquip(\'' + entry.id + '\',\'' + (item.id || '') + '\',false)">Remove</button></div></div>';
+        h += '<div class="ch-item-thumb-wrap"><a href="' + link + '"><img src="' + esc(img) + '" class="ch-cw-img" alt=""/></a></div>';
+        h += '</div>';
+        h += '<p class="ch-cw-name"><a href="' + link + '">' + esc(item.name || '') + '</a></p>';
+        h += '<div class="ch-cw-type"><span class="ch-type-label">Type: </span><span class="ch-type-val">' + esc(item.item_type || '') + '</span></div>';
+        h += '</div>';
+    });
+    el.innerHTML = h;
+}
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+function avatarNotify(msg) {
+    var el = document.getElementById('ch-notif');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+async function toggleEquip(inventoryId, itemId, equip) {
+    try {
+        if (equip) {
+            var itemType = null;
+            var newItem = null;
+            for (var i = 0; i < avatarInventory.length; i++) {
+                if (avatarInventory[i].id === inventoryId) {
+                    itemType = avatarInventory[i].item ? avatarInventory[i].item.item_type : null;
+                    newItem = avatarInventory[i].item;
+                    break;
+                }
+            }
+            var equippedItems = avatarInventory.filter(function(e) { return e.equipped; });
+            var sameTypeCount = 0;
+            equippedItems.forEach(function(e) {
+                if (e.item && e.item.item_type === itemType) sameTypeCount++;
+            });
+            var limit = itemType === 'Hat' ? 2 : 1;
+            if (sameTypeCount >= limit) {
+                avatarNotify('You can only equip ' + limit + ' ' + (itemType||'') + ' item(s) at a time.');
+                renderAvatarItems();
+                return;
+            }
+            if (equippedItems.length > 0 && newItem) {
+                var hasCombo = false;
+                var newItemId = newItem.id;
+                if (newItem.composite_map) {
+                    var nmap = null;
+                    try { nmap = typeof newItem.composite_map === 'string' ? JSON.parse(newItem.composite_map) : newItem.composite_map; } catch(e) {}
+                    if (nmap && nmap.length) {
+                        for (var ni = 0; ni < equippedItems.length; ni++) {
+                            var eid = equippedItems[ni].item ? equippedItems[ni].item.id : null;
+                            if (eid) {
+                                for (var nj = 0; nj < nmap.length; nj++) {
+                                    if (nmap[nj].item_id === eid) { hasCombo = true; break; }
+                                }
+                            }
+                            if (hasCombo) break;
+                        }
+                    }
+                }
+                if (!hasCombo) {
+                    for (var ei = 0; ei < equippedItems.length; ei++) {
+                        var oitem = equippedItems[ei].item;
+                        if (oitem && oitem.composite_map) {
+                            var omap = null;
+                            try { omap = typeof oitem.composite_map === 'string' ? JSON.parse(oitem.composite_map) : oitem.composite_map; } catch(e) {}
+                            if (omap && omap.length) {
+                                for (var oi = 0; oi < omap.length; oi++) {
+                                    if (omap[oi].item_id === newItemId) { hasCombo = true; break; }
+                                }
+                            }
+                            if (hasCombo) break;
+                        }
+                    }
+                }
+                if (!hasCombo) {
+                    for (var ue = 0; ue < equippedItems.length; ue++) {
+                        await equipItem(equippedItems[ue].id, false);
+                    }
+                    await equipItem(inventoryId, true);
+                    avatarInventory = await getUserInventory(currentProfile.id);
+                    var soloAvatar = newItem.avatar_url || 'images/avatar/ava2.png';
+                    var soloHeadshot = newItem.headshot_url || 'images/avatar/headshot.png';
+                    if (soloAvatar !== currentProfile.avatar_url || soloHeadshot !== currentProfile.headshot_url) {
+                        await updateProfile(currentProfile.id, { avatar_url: soloAvatar, headshot_url: soloHeadshot });
+                        currentProfile.avatar_url = soloAvatar;
+                        currentProfile.headshot_url = soloHeadshot;
+                        document.getElementById('avatarPreviewImg').src = soloAvatar;
+                    }
+                    renderAvatarItems();
+                    renderCW();
+                    return;
+                }
+            }
+        }
+        await equipItem(inventoryId, equip);
+        avatarInventory = await getUserInventory(currentProfile.id);
+        var itemData = null;
+        for (var i = 0; i < avatarInventory.length; i++) {
+            if (avatarInventory[i].id === inventoryId) {
+                itemData = avatarInventory[i].item;
+                break;
+            }
+        }
+        var newAvatar = 'images/avatar/ava2.png';
+        var newHeadshot = 'images/avatar/headshot.png';
+        var equippedItems = avatarInventory.filter(function(e) { return e.equipped; });
+        if (equippedItems.length > 0) {
+            var last = equippedItems[equippedItems.length - 1];
+            if (last.item) {
+                var equippedIds = equippedItems.map(function(e) { return e.item ? e.item.id : null; }).filter(function(id) { return id && id !== last.item.id; });
+                var foundComposite = false;
+                if (last.item.composite_map && equippedIds.length > 0) {
+                    var map = null;
+                    try { map = typeof last.item.composite_map === 'string' ? JSON.parse(last.item.composite_map) : last.item.composite_map; } catch(e) {}
+                    if (map && map.length > 0) {
+                        for (var mi = 0; mi < map.length; mi++) {
+                            if (equippedIds.indexOf(map[mi].item_id) !== -1) {
+                                if (map[mi].avatar_url) newAvatar = map[mi].avatar_url;
+                                if (map[mi].headshot_url) newHeadshot = map[mi].headshot_url;
+                                foundComposite = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!foundComposite) {
+                    for (var ei = 0; ei < equippedItems.length - 1; ei++) {
+                        var other = equippedItems[ei];
+                        if (other.item && other.item.composite_map) {
+                            var omap = null;
+                            try { omap = typeof other.item.composite_map === 'string' ? JSON.parse(other.item.composite_map) : other.item.composite_map; } catch(e) {}
+                            if (omap && omap.length > 0) {
+                                for (var mi2 = 0; mi2 < omap.length; mi2++) {
+                                    if (omap[mi2].item_id === last.item.id) {
+                                        if (omap[mi2].avatar_url) newAvatar = omap[mi2].avatar_url;
+                                        if (omap[mi2].headshot_url) newHeadshot = omap[mi2].headshot_url;
+                                        foundComposite = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (foundComposite) break;
+                        }
+                    }
+                }
+                if (!foundComposite) {
+                    if (last.item.avatar_url) newAvatar = last.item.avatar_url;
+                    if (last.item.headshot_url) newHeadshot = last.item.headshot_url;
+                }
+            }
+        }
+        if (newAvatar !== currentProfile.avatar_url || newHeadshot !== currentProfile.headshot_url) {
+            await updateProfile(currentProfile.id, { avatar_url: newAvatar, headshot_url: newHeadshot });
+            currentProfile.avatar_url = newAvatar;
+            currentProfile.headshot_url = newHeadshot;
+            document.getElementById('avatarPreviewImg').src = newAvatar;
+        }
+        renderAvatarItems();
+        renderCW();
+    } catch(e) { alert('Error: ' + (e.message || 'Failed to update')); }
+}
+
+document.addEventListener('click', function(e) {
+    var cat = e.target.getAttribute('data-cat');
+    if (cat !== null && cat !== undefined) {
+        avatarFilter = cat;
+        avatarPage = 1;
+        renderCatNav();
+        renderAvatarItems();
+    }
+});
+
+document.getElementById('chRedrawLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    var wrap = document.getElementById('chAvatarWrap');
+    if (wrap) { wrap.style.position = 'relative'; var o = document.createElement('div'); o.className = 'ch-loading-overlay'; o.innerHTML = '<div class="ch-spinner"></div>'; wrap.appendChild(o); }
+    var equippedItems = avatarInventory.filter(function(e) { return e.equipped && e.item; });
+    var newAvatar = 'images/avatar/ava2.png';
+    var newHeadshot = 'images/avatar/headshot.png';
+    if (equippedItems.length > 0) {
+        var last = equippedItems[equippedItems.length - 1];
+        if (last.item.avatar_url) newAvatar = last.item.avatar_url;
+        if (last.item.headshot_url) newHeadshot = last.item.headshot_url;
+    }
+    if (typeof updateProfile === 'function') {
+        updateProfile(currentProfile.id, { avatar_url: newAvatar, headshot_url: newHeadshot })
+        .then(function() {
+            document.getElementById('avatarPreviewImg').src = newAvatar;
+            currentProfile.avatar_url = newAvatar;
+            currentProfile.headshot_url = newHeadshot;
+            if (wrap) { var o2 = wrap.querySelector('.ch-loading-overlay'); if (o2) o2.remove(); }
+        }).catch(function() { if (wrap) { var o2 = wrap.querySelector('.ch-loading-overlay'); if (o2) o2.remove(); } });
+    }
+});
+
+document.querySelectorAll('[data-tab]').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        var t = tab.getAttribute('data-tab');
+        document.querySelectorAll('[data-tab]').forEach(function(el) {
+            if (el.getAttribute('data-tab') === t) {
+                el.className = 'ch-tab ch-tab-sel';
+                if (!el.querySelector('.ch-tab-spacer')) {
+                    var sp = document.createElement('div'); sp.className = 'ch-tab-spacer';
+                    el.appendChild(sp);
+                }
+            } else {
+                el.className = 'ch-tab ch-tab-unsel';
+                var sp2 = el.querySelector('.ch-tab-spacer');
+                if (sp2) sp2.remove();
+            }
+        });
+        document.getElementById('chPanelWardrobe').style.display = t === 'wardrobe' ? '' : 'none';
+        document.getElementById('chPanelOutfits').style.display = t === 'outfits' ? '' : 'none';
+    });
+});
+
+var avatarCheck = setInterval(function() {
+    if (currentProfile) {
+        clearInterval(avatarCheck);
+        document.getElementById('avatarPreviewImg').src = currentProfile.avatar_url || 'images/avatar/ava2.png';
+        loadAvatarInventory();
+    }
+}, 100);
+</script>
+</body>
+</html>
+

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Develop - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap develop-page-wrap corvixz-white-page">
+                    <div class="developerContainer-2016">
+                        <div class="vtabs-row" id="devMainTabs">
+                            <div class="vtabs-tab selected" data-tab="my">My Creations</div>
+                            <div class="vtabs-tab" data-tab="group">Group Creations</div>
+                            <div class="vtabs-tab" data-tab="library">Library</div>
+                            <div class="vtabs-tab" data-tab="devex">Developer Exchange</div>
+                        </div>
+                        <div class="vtabs-spacer"></div>
+
+                        <div id="devCreationsPanel">
+                            <div class="row">
+                                <div class="col-2">
+                                    <div id="devGroupSelectWrap" style="display:none;">
+                                        <p class="mb-0 mt-2">Select Group:</p>
+                                        <select class="form-select form-select-sm w-100" id="devGroupSelect">
+                                            <option value="">No groups available</option>
+                                        </select>
+                                    </div>
+                                    <div class="dev-vertical-selector" id="devAssetSelector"></div>
+                                </div>
+                                <div class="col-8 mt-4" id="devAssetContent"></div>
+                            </div>
+                        </div>
+                        <div id="devNotAvailablePanel" style="display:none;">
+                            <p class="corvixz-empty">This feature is not available.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var DEV_PAGES = [
+        { id: 0, name: 'Games', disabled: false },
+        { id: 9, name: 'Places', disabled: true },
+        { id: 10, name: 'Models', disabled: true },
+        { id: 13, name: 'Decals', disabled: true },
+        { id: 102, name: 'Images', disabled: false },
+        { id: 21, name: 'Badges', disabled: true },
+        { id: 100, name: 'Passes', disabled: true },
+        { id: 3, name: 'Audio', disabled: false },
+        { id: 24, name: 'Animations', disabled: true },
+        { id: 40, name: 'Meshes', disabled: true },
+        { id: 101, name: 'User Ads', disabled: false },
+        { id: 1022, name: 'Sponsored Games', disabled: true },
+        { id: 11, name: 'Shirts', disabled: false },
+        { id: 2, name: 'T-Shirts', disabled: false },
+        { id: 12, name: 'Pants', disabled: false },
+        { id: 38, name: 'Plugins', disabled: true }
+    ];
+
+    var devMainTab = 'my';
+    var devViewId = 0;
+    var myGames = [];
+
+    function getViewParam() {
+        var p = new URLSearchParams(window.location.search).get('View');
+        return p !== null ? parseInt(p, 10) : 0;
+    }
+
+    function setViewParam(id) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('View', id);
+        history.replaceState(null, '', url.toString());
+    }
+
+    function renderAssetSelector() {
+        var el = document.getElementById('devAssetSelector');
+        if (!el) return;
+        var html = '';
+        DEV_PAGES.forEach(function(p) {
+            var cls = 'dev-selector-option';
+            if (p.id === devViewId) cls += ' selected';
+            if (p.disabled) cls += ' disabled';
+            html += '<a href="#" class="' + cls + '" data-view="' + p.id + '" data-disabled="' + (p.disabled ? '1' : '0') + '">' + p.name + '</a>';
+        });
+        el.innerHTML = html;
+        el.querySelectorAll('.dev-selector-option').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (this.getAttribute('data-disabled') === '1') return;
+                devViewId = parseInt(this.getAttribute('data-view'), 10);
+                setViewParam(devViewId);
+                renderAssetSelector();
+                renderAssetContent();
+            });
+        });
+    }
+
+    function escDev(s) {
+        if (!s) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    }
+
+    function devGearHtml(dropId, options) {
+        var html = '<div class="dev-gear-wrap" id="gear-' + dropId + '">';
+        html += '<div class="dev-gear-box" onclick="toggleDevGear(\'' + dropId + '\', event)">';
+        html += '<span class="dev-gear-icon"></span><span class="dev-gear-caret">▼</span></div>';
+        html += '<div class="dev-gear-menu" style="display:none;">';
+        options.forEach(function(opt) {
+            if (opt.sep) { html += '<div class="dev-gear-sep"></div>'; return; }
+            if (opt.onClick) {
+                html += '<a href="#" onclick="' + escDev(opt.onClick) + ';return false;"><p class="dev-gear-entry">' + escDev(opt.name) + '</p></a>';
+            } else {
+                html += '<a href="' + escDev(opt.url || '#') + '"><p class="dev-gear-entry">' + escDev(opt.name) + '</p></a>';
+            }
+        });
+        html += '</div></div>';
+        return html;
+    }
+
+    function toggleDevGear(dropId, e) {
+        if (e) e.stopPropagation();
+        var wrap = document.getElementById('gear-' + dropId);
+        if (!wrap) return;
+        var menu = wrap.querySelector('.dev-gear-menu');
+        var open = menu.style.display !== 'none';
+        document.querySelectorAll('.dev-gear-menu').forEach(function(m) { m.style.display = 'none'; });
+        document.querySelectorAll('.dev-gear-box').forEach(function(b) { b.classList.remove('open'); });
+        if (!open) { menu.style.display = 'block'; wrap.querySelector('.dev-gear-box').classList.add('open'); }
+    }
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dev-gear-menu').forEach(function(m) { m.style.display = 'none'; });
+        document.querySelectorAll('.dev-gear-box').forEach(function(b) { b.classList.remove('open'); });
+    });
+
+    function renderUserAdsContent() {
+        var created = new URLSearchParams(window.location.search).get('created');
+        var html = '<div class="row"><div class="col-12">';
+        html += '<a href="/create-ad/" class="buyButton-0-2-24 dev-create-btn" style="display:inline-block;text-decoration:none;margin-bottom:8px;">Create User Ad</a>';
+        if (created === '1') {
+            html += '<p class="dev-ad-created-msg">Ad uploaded. Set a bid below to start running.</p>';
+        }
+        html += '<h2 class="mt-2 dev-subtitle">User Ads</h2>';
+        html += '<div id="myAdsList"><p class="mt-4 mb-0">Loading ads...</p></div>';
+        html += '</div></div>';
+        return html;
+    }
+
+    function renderGamesContent() {
+        var html = '<div class="row"><div class="col-12">';
+        html += '<a href="configure-game.html?new=1" class="buyButton-0-2-24 dev-create-btn" style="display:inline-block;text-decoration:none;">Create New Game</a>';
+        html += '<h2 class="mt-2 dev-subtitle">Games</h2>';
+        if (!myGames.length) {
+            html += '<p class="mt-4 mb-0">You haven\'t created any games.</p>';
+        } else {
+            myGames.forEach(function(g) {
+                var gameUrl = 'game-page.html?id=' + g.id;
+                var cfgUrl = 'configure-game.html?id=' + g.id;
+                html += '<div class="row dev-asset-row align-items-start">';
+                html += '<div class="col-2"><img class="dev-asset-thumb" src="' + escDev(g.thumbnail || 'images/logo/f.png') + '" alt=""/></div>';
+                html += '<div class="col-9 ps-0">';
+                html += '<p class="mb-0"><a href="' + cfgUrl + '" class="dev-asset-link">' + escDev(g.title || 'Untitled') + '</a></p>';
+                html += '<p class="mb-0"><span class="dev-start-place-label">Start Place: </span><a href="' + gameUrl + '" class="dev-asset-link">' + escDev(g.title || 'Untitled') + '</a></p>';
+                html += '<p class="mb-0 mt-1"><a href="' + cfgUrl + '" class="dev-asset-link">Public</a></p>';
+                html += '</div>';
+                html += '<div class="col-1 dev-gear-col">' + devGearHtml('g-' + g.id, [
+                    { name: 'Configure Game', url: cfgUrl },
+                    { sep: true },
+                    { name: 'Advertise', url: 'create-user-ad.html?targetType=game&targetId=' + g.id }
+                ]) + '</div></div>';
+            });
+        }
+        html += '</div></div>';
+        return html;
+    }
+
+    function renderPlaceholderContent(name) {
+        return '<div class="row"><div class="col-12"><h2 class="dev-subtitle">' + name + '</h2><p class="mt-4 mb-0">You haven\'t created any ' + name.toLowerCase() + '.</p></div></div>';
+    }
+
+    function renderAssetContent() {
+        var el = document.getElementById('devAssetContent');
+        if (!el) return;
+        var page = DEV_PAGES.find(function(p) { return p.id === devViewId; }) || DEV_PAGES[0];
+        if (page.id === 0) el.innerHTML = renderGamesContent();
+        else if (page.id === 101) { el.innerHTML = renderUserAdsContent(); loadMyAds(); }
+        else if ([102, 3, 11, 2, 12].indexOf(page.id) !== -1) el.innerHTML = renderPlaceholderContent(page.name);
+        else el.innerHTML = '<p class="corvixz-empty">This feature is not available.</p>';
+    }
+
+    function switchDevMainTab(tab) {
+        devMainTab = tab;
+        document.querySelectorAll('#devMainTabs .vtabs-tab').forEach(function(t) {
+            t.classList.toggle('selected', t.getAttribute('data-tab') === tab);
+        });
+        var creations = document.getElementById('devCreationsPanel');
+        var na = document.getElementById('devNotAvailablePanel');
+        var groupWrap = document.getElementById('devGroupSelectWrap');
+        if (tab === 'my' || tab === 'group') {
+            if (creations) creations.style.display = '';
+            if (na) na.style.display = 'none';
+            if (groupWrap) groupWrap.style.display = tab === 'group' ? '' : 'none';
+            renderAssetSelector();
+            renderAssetContent();
+        } else {
+            if (creations) creations.style.display = 'none';
+            if (na) na.style.display = '';
+        }
+    }
+
+    function resolveAdTarget(ad) {
+        if (ad.target_type === 'game') {
+            var g = myGames.find(function(x) { return String(x.id) === String(ad.target_id); });
+            return { name: g ? g.title : ('Game #' + ad.target_id), url: 'game-page.html?id=' + ad.target_id };
+        }
+        if (ad.target_type === 'group') {
+            return { name: 'Group #' + ad.target_id, url: 'groups.html?gid=' + ad.target_id };
+        }
+        return { name: ad.target_id || 'Unknown', url: '#' };
+    }
+
+    function adStatCol(name, value) {
+        return '<div class="col-3"><p class="mb-0"><span class="dev-ad-stat-label">' + name + ': </span>' + value + '</p></div>';
+    }
+
+    async function loadMyAds() {
+        var el = document.getElementById('myAdsList');
+        if (!el || !currentProfile) return;
+        try {
+            var ads = await getMyUserAds(currentProfile.id);
+            if (!ads || !ads.length) {
+                el.innerHTML = '<p class="mt-4 mb-0">You haven\'t created any User Ads.</p>';
+                return;
+            }
+            var html = '';
+            ads.forEach(function(ad) {
+                var running = isAdRunning(ad);
+                var target = resolveAdTarget(ad);
+                var adName = ad.name || formatAdTypeLabel(ad.ad_type);
+                var bidLast = ad.bid_amount || 0;
+                var bidAll = ad.bid_amount || 0;
+                html += '<div class="row dev-asset-row align-items-start">';
+                html += '<div class="col-2"><img class="dev-asset-thumb" src="' + escDev(ad.image_url) + '" alt=""/></div>';
+                html += '<div class="col-9 ps-0">';
+                html += '<p class="mb-0"><a href="develop.html?View=101" class="dev-asset-link">' + escDev(adName) + '</a></p>';
+                html += '<p class="mb-0">' + escDev(adName) + ' (for <a href="' + target.url + '" class="dev-asset-link">' + escDev(target.name) + '</a>)</p>';
+                html += '<div class="row dev-ad-stats-row">';
+                html += adStatCol('Impressions', '0') + adStatCol('Clicks', '0') + adStatCol('CTR', '0.00%') + adStatCol('Bid', bidLast.toLocaleString());
+                html += adStatCol('Total Impr', '0') + adStatCol('Total Clicks', '0') + adStatCol('Total CTR', '0.00%') + adStatCol('Total Bid', bidAll.toLocaleString());
+                html += '</div>';
+                html += '<p class="mb-0 user-ad-run-toggle" onclick="toggleAdRunMenu(\'' + ad.id + '\')">';
+                html += '<span class="game-privacy-symbol ' + (running ? 'gps-active' : 'gps-inactive') + '"></span> ';
+                html += running ? 'Running' : 'Not Running';
+                html += '</p>';
+                html += '<div id="run-menu-' + ad.id + '" class="user-ad-bid-panel" style="display:none;">';
+                html += '<p class="user-ad-bid-error" id="err-' + ad.id + '" style="display:none;"></p>';
+                html += '<span class="user-ad-bid-label">Bid in Ro-coin: </span>';
+                html += '<input type="text" class="user-ad-robux-input" id="robux-' + ad.id + '" value="100"/>';
+                html += '<button type="button" class="buyButton-0-2-24 dev-ad-bid-btn" onclick="bidOnUserAd(\'' + ad.id + '\')">Bid</button>';
+                html += '<button type="button" class="cancelButton-0-2-27 dev-ad-cancel-btn" onclick="closeAdRunMenu(\'' + ad.id + '\')">Cancel</button>';
+                html += '</div></div>';
+                html += '<div class="col-1 dev-gear-col">' + devGearHtml('a-' + ad.id, [
+                    { name: 'Run', onClick: 'toggleAdRunMenu(\'' + ad.id + '\')' }
+                ]) + '</div></div>';
+            });
+            el.innerHTML = html;
+        } catch(e) {
+            el.innerHTML = '<p class="mt-4" style="color:#d86868;">Run supabase-setup-complete.sql in Supabase SQL Editor</p>';
+        }
+    }
+
+    function toggleAdRunMenu(adId) {
+        var panel = document.getElementById('run-menu-' + adId);
+        if (!panel) return;
+        document.querySelectorAll('.user-ad-bid-panel').forEach(function(p) {
+            if (p.id !== 'run-menu-' + adId) p.style.display = 'none';
+        });
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeAdRunMenu(adId) {
+        var panel = document.getElementById('run-menu-' + adId);
+        if (panel) panel.style.display = 'none';
+    }
+
+    async function bidOnUserAd(adId) {
+        var robuxEl = document.getElementById('robux-' + adId);
+        var errEl = document.getElementById('err-' + adId);
+        var robux = parseInt(robuxEl && robuxEl.value, 10);
+        if (!Number.isSafeInteger(robux) || robux < 100) {
+            if (errEl) { errEl.textContent = 'Invalid Ro-coin amount (min 100).'; errEl.style.display = 'block'; }
+            return;
+        }
+        var days = Math.min(365, Math.ceil(robux / 100));
+        try {
+            var res = await runUserAd(adId, robux);
+            if (currentProfile && res && res.balance !== undefined) currentProfile.currency = res.balance;
+            if (typeof updateDynamicElements === 'function') updateDynamicElements();
+            closeAdRunMenu(adId);
+            loadMyAds();
+        } catch(e) {
+            if (errEl) { errEl.textContent = e.message || 'Bid failed.'; errEl.style.display = 'block'; }
+        }
+    }
+
+    async function stopUserAdCampaign(adId) {
+        try {
+            await stopUserAd(adId);
+            closeAdRunMenu(adId);
+            loadMyAds();
+        } catch(e) {
+            var errEl = document.getElementById('err-' + adId);
+            if (errEl) { errEl.textContent = e.message || 'Stop failed.'; errEl.style.display = 'block'; }
+        }
+    }
+
+    async function loadDevelopPage() {
+        if (!currentProfile) return;
+        devViewId = getViewParam();
+        if (!DEV_PAGES.some(function(p) { return p.id === devViewId && !p.disabled; })) devViewId = 0;
+        try {
+            var games = await getGames();
+            myGames = (games || []).filter(function(g) { return g.creator_id === currentProfile.id; });
+        } catch(e) { myGames = []; }
+        switchDevMainTab(devMainTab);
+        if (typeof updateDynamicElements === 'function') updateDynamicElements();
+    }
+
+    document.querySelectorAll('#devMainTabs .vtabs-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            switchDevMainTab(this.getAttribute('data-tab'));
+        });
+    });
+
+    var devCheck = setInterval(function() {
+        if (currentProfile) { clearInterval(devCheck); loadDevelopPage(); }
+    }, 100);
+    </script>
+</body>
+</html>
+

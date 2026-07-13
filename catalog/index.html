@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Catalog - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap catalog-page-wrap corvixz-white-page">
+                        <div class="corvixz-white-panel catalog-container">
+                        <div class="row mt-2">
+                                <div class="col-12 col-md-4 col-lg-2">
+                                    <h1 class="catalog-title">Catalog</h1>
+                                </div>
+                                <div class="col-12 col-md-8 col-lg-10">
+                                    <div class="cat-search-row">
+                                        <select id="catCategoryFilter" onchange="loadCatalog()">
+                                            <option value="">All Categories</option>
+                                            <option value="Hat">Hats</option>
+                                            <option value="Hair">Hair</option>
+                                            <option value="Face">Faces</option>
+                                            <option value="Gear">Gear</option>
+                                            <option value="Accessory">Accessories</option>
+                                        </select>
+                                        <input type="text" id="catSearchInput" placeholder="Search"/>
+                                        <button class="corvixz-group-btn" onclick="loadCatalog()">Search</button>
+                                        <div class="cat-sort-wrapper">
+                                            <span class="cat-sort-label">Sort by:</span>
+                                            <span style="display:inline-block;width:140px;">
+                                                <select id="catSortSelect" onchange="loadCatalog()" style="width:100%;padding:6px 10px;font-size:13px;border:1px solid #a7a7a7;border-radius:0;background:#fff;color:#000;">
+                                                    <option value="recent">Recent</option>
+                                                    <option value="bestselling">Bestselling</option>
+                                                    <option value="price-low">Price (Low to High)</option>
+                                                    <option value="price-high">Price (High to Low)</option>
+                                                </select>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:12px;">
+                                <div class="col-12 col-md-4 col-lg-2">
+                                    <div class="cat-sidebar divider-right">
+                                        <div class="cat-category-wrapper">
+                                            <div class="cat-category-heading">
+                                                <div>
+                                                    <p class="cat-category-heading-top">Browse by</p>
+                                                    <h2 class="cat-category-heading-bottom">Category</h2>
+                                                </div>
+                                            </div>
+                                            <div class="cat-category-body">
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Featured')">Featured <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Collectibles')">Collectibles <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-sep"></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('')" style="font-weight:700;">All Categories</div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Hat')">Hats <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Hair')">Hair <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Face')">Faces <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Gear')">Gear <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Accessory')">Accessories <span class="cat-category-caret">►</span></div>
+                                                <div class="cat-category-item" onclick="selectSidebarCat('Audio')">Audio</div>
+                                            </div>
+                                        </div>
+                                        <h2 class="cat-filters-header">Filters</h2>
+                                        <div>
+                                            <p class="cat-all-genres">All Genres</p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreBuilding" onchange="loadCatalog()"><label for="catGenreBuilding" class="cat-filter-label">Building</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreHorror" onchange="loadCatalog()"><label for="catGenreHorror" class="cat-filter-label">Horror</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreTown" onchange="loadCatalog()"><label for="catGenreTown" class="cat-filter-label">Town and City</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreMilitary" onchange="loadCatalog()"><label for="catGenreMilitary" class="cat-filter-label">Military</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreComedy" onchange="loadCatalog()"><label for="catGenreComedy" class="cat-filter-label">Comedy</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreMedieval" onchange="loadCatalog()"><label for="catGenreMedieval" class="cat-filter-label">Medieval</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreAdventure" onchange="loadCatalog()"><label for="catGenreAdventure" class="cat-filter-label">Adventure</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreSciFi" onchange="loadCatalog()"><label for="catGenreSciFi" class="cat-filter-label">Sci-Fi</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreNaval" onchange="loadCatalog()"><label for="catGenreNaval" class="cat-filter-label">Naval</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreFPS" onchange="loadCatalog()"><label for="catGenreFPS" class="cat-filter-label">FPS</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreRPG" onchange="loadCatalog()"><label for="catGenreRPG" class="cat-filter-label">RPG</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreSports" onchange="loadCatalog()"><label for="catGenreSports" class="cat-filter-label">Sports</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreFighting" onchange="loadCatalog()"><label for="catGenreFighting" class="cat-filter-label">Fighting</label></p>
+                                            <p class="mb-0" style="font-size:13px;color:#000;"><input type="checkbox" id="catGenreWestern" onchange="loadCatalog()"><label for="catGenreWestern" class="cat-filter-label">Western</label></p>
+                                        </div>
+                                        <details open style="margin-top:16px;padding-top:12px;border-top:1px solid #c3c3c3;user-select:none;">
+                                            <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#000;padding:4px 0;">Legend</summary>
+                                            <div style="margin-top:8px;">
+                                                <div style="margin-bottom:12px;">
+                                                    <img src="../images/icons/overlay_bcCatalog.png" style="width:auto;height:auto;display:block;"/>
+                                                    <p style="font-weight:600;margin:4px 0 0;font-size:13px;color:#000;">Builders Club Only</p>
+                                                    <p style="margin:0;font-size:12px;color:#000;line-height:normal;">Only purchasable by Builders Club members.</p>
+                                                </div>
+                                                <div style="margin-bottom:12px;">
+                                                    <img src="../images/icons/limitedOverlay_small.png" style="width:auto;height:auto;display:block;"/>
+                                                    <p style="font-weight:600;margin:4px 0 0;font-size:13px;color:#000;">Limited Items</p>
+                                                    <p style="margin:0;font-size:12px;color:#000;line-height:normal;">Owners of these discontinued items can re-sell them to other users at any price.</p>
+                                                </div>
+                                                <div style="margin-bottom:12px;">
+                                                    <img src="../images/icons/limitedUOverlay_small.png" style="width:auto;height:auto;display:block;"/>
+                                                    <p style="font-weight:600;margin:4px 0 0;font-size:13px;color:#000;">Limited Unique Items</p>
+                                                    <p style="margin:0;font-size:12px;color:#000;line-height:normal;">A limited supply originally sold by CORVIXZ. Each unit is labeled with a serial number. Once sold out, owners can re-sell them to other users.</p>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-8 col-lg-10">
+                                    <div class="cat-grid" id="catalogGrid">
+                                        <div class="col-12"><div class="cat-loading">Loading catalog...</div></div>
+                                    </div>
+                                    <div class="cat-pagination" id="catalogPagination">
+                                        <button id="prevPageBtn" disabled>&laquo; Prev</button>
+                                        <span style="padding:3px 0;font-size:13px;color:#999;" id="pageIndicator">Page 1</span>
+                                        <button id="nextPageBtn" disabled>Next &raquo;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var allItems = [];
+    var filteredItems = [];
+    var currentPage = 1;
+    var pageSize = 30;
+    var selectedSidebarCat = '';
+    function formatPrice(p) { if (p >= 1000) { return (p/1000).toFixed(p%1000===0?0:1).replace(/\.0$/,'') + 'K+'; } return p; }
+    function escHtml(str) { var d = document.createElement('div'); d.textContent = str == null ? '' : String(str); return d.innerHTML; }
+    var ownedItemIds = {};
+
+    function selectSidebarCat(cat) {
+        selectedSidebarCat = cat;
+        document.getElementById('catCategoryFilter').value = cat;
+        loadCatalog();
+    }
+
+    function applyFilters() {
+        var search = document.getElementById('catSearchInput').value.toLowerCase().trim();
+        var dropdownCat = document.getElementById('catCategoryFilter').value;
+        var sortVal = document.getElementById('catSortSelect').value;
+        filteredItems = allItems.filter(function(item) {
+            if (search && item.name.toLowerCase().indexOf(search) === -1) return false;
+            if (dropdownCat && item.item_type !== dropdownCat) return false;
+            return true;
+        });
+        if (sortVal === 'price-low') filteredItems.sort(function(a,b) { return (a.price||0) - (b.price||0); });
+        else if (sortVal === 'price-high') filteredItems.sort(function(a,b) { return (b.price||0) - (a.price||0); });
+        else if (sortVal === 'bestselling') filteredItems.sort(function(a,b) { return (b.sales||0) - (a.sales||0); });
+        else filteredItems.sort(function(a,b) { return new Date(b.created_at) - new Date(a.created_at); });
+        currentPage = 1;
+        renderCatalog();
+    }
+
+    function renderCatalog() {
+        var grid = document.getElementById('catalogGrid');
+        var totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        var pageItems = filteredItems.slice(start, start + pageSize);
+        if (pageItems.length === 0) {
+            grid.innerHTML = '<div class="col-12"><div class="cat-loading">No items found.</div></div>';
+        } else {
+            grid.innerHTML = '';
+            pageItems.forEach(function(item) {
+                var owned = ownedItemIds[item.id];
+                var url = 'item.html?id=' + (item.item_number || item.id);
+                var col = document.createElement('div');
+                col.className = 'cat-item-col';
+                var div = document.createElement('div');
+                div.className = 'catalog-item';
+                var limitedOverlay = '';
+                if (item.is_limited_unique) {
+                    limitedOverlay = '<img class="cat-limited-overlay cat-limited-u" src="../images/icons/limitedUOverlay_small.png" alt="Limited Unique"/>';
+                } else if (item.is_limited) {
+                    limitedOverlay = '<img class="cat-limited-overlay cat-limited" src="../images/icons/limitedOverlay_small.png" alt="Limited"/>';
+                }
+                var remaining = item.remaining_count || 0;
+                var soldOut = item.is_limited_unique && remaining <= 0;
+                var limitedInfo = '';
+                if (item.is_limited_unique) {
+                    limitedInfo = '<div class="cat-limited-info">' + remaining + ' left</div>';
+                }
+                var imgHtml = item.image_url
+                    ? '<div class="catalog-item-img-wrap" style="position:relative;">' + limitedOverlay + '<img class="catalog-item-img" src="' + escHtml(item.image_url) + '" alt="' + escHtml(item.name) + '"/></div>'
+                    : '<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:11px;background:#f5f5f5;position:relative;">' + limitedOverlay + 'No Image</div>';
+                var priceHtml = soldOut
+                    ? '<div class="catalog-item-price"><span class="cat-offsale">offsale</span></div>'
+                    : '<div class="catalog-item-price">' + robuxHtml(item.price || 0, 12) + '</div>';
+                var creatorName = (item.creator && item.creator.username) ? item.creator.username : 'Unknown';
+                var updatedText = item.updated_at ? new Date(item.updated_at).toLocaleDateString('en-US') : (item.created_at ? new Date(item.created_at).toLocaleDateString('en-US') : 'N/A');
+                var detailsHtml = '<div class="catalog-item-details">'
+                    + '<div class="det-row"><span class="det-key">Creator: </span><span class="det-val">' + escHtml(creatorName) + '</span></div>'
+                    + '<div class="det-row"><span class="det-key">Updated: </span><span class="det-val">' + escHtml(updatedText) + '</span></div>'
+                    + '<div class="det-row"><span class="det-key">Sales: </span><span class="det-val">' + (item.sales||0) + '</span></div>'
+                    + '<div class="det-row"><span class="det-key">Favorited: </span><span class="det-val">' + (item.favorites||0) + ' times</span></div>'
+                    + '</div>';
+                div.onclick = function() { window.location = url; };
+                div.innerHTML = imgHtml
+                    + '<div class="catalog-item-name">' + escHtml(item.name) + '</div>'
+                    + limitedInfo
+                    + priceHtml
+                    + detailsHtml;
+                col.appendChild(div);
+                grid.appendChild(col);
+            });
+        }
+        document.getElementById('pageIndicator').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+        document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+        document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+    }
+
+    document.getElementById('prevPageBtn').onclick = function() { if (currentPage > 1) { currentPage--; renderCatalog(); } };
+    document.getElementById('nextPageBtn').onclick = function() { var totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize)); if (currentPage < totalPages) { currentPage++; renderCatalog(); } };
+
+    async function loadCatalog() {
+        try {
+            allItems = await supabaseFetch(API_URL + '/items?select=*,creator:profiles!items_creator_id_fkey(username)&order=created_at.desc', { headers: authHeaders() });
+            if (currentProfile) {
+                var inv = await getUserInventory(currentProfile.id);
+                if (inv && inv.length) {
+                    inv.forEach(function(e) { ownedItemIds[e.item_id] = true; });
+                }
+            }
+            applyFilters();
+        } catch(e) {
+            document.getElementById('catalogGrid').innerHTML = '<div class="col-12"><div class="cat-loading">Error loading catalog.</div></div>';
+        }
+    }
+    loadCatalog();
+    </script>
+</body>
+</html>

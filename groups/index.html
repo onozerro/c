@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>My Groups - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div id="ad-slot"></div>
+                <div class="page-wrap groups-page-wrap corvixz-white-page">
+                    <div class="groups-container-2016">
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="groups-old-card groups-sidebar">
+                                    <button type="button" class="corvixz-play-btn buyButton-0-2-24 groups-create-btn" onclick="location.href='/create-group/'">Create</button>
+                                    <div class="groups-sidebar-list mt-4" id="groupsSidebarList"></div>
+                                </div>
+                            </div>
+                            <div class="col-7 ps-0">
+                                <div class="groups-old-card mb-2">
+                                    <form class="groups-search-form" onsubmit="searchGroups(event)">
+                                        <input type="text" class="groups-search-input" id="groupSearchInput" placeholder="  Search All Groups" autocomplete="off"/>
+                                        <button type="submit" class="corvixz-group-btn">Search</button>
+                                    </form>
+                                </div>
+                                <div id="groupMainPanel"><p class="corvixz-empty">Select a group from the sidebar.</p></div>
+                            </div>
+                            <div class="col-2 ps-0">
+                                <div class="groups-old-card groups-controls-panel" id="groupControlsPanel" style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    var myGroups = [];
+    var selectedGroupId = null;
+    var currentMembership = null;
+    var currentGroup = null;
+    var groupRanks = [];
+    var selectedRank = null;
+    var activeGroupTab = 'members';
+    var searchResults = null;
+
+    function esc(s) { var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+    function sortSidebarGroups() {
+        var list = myGroups.slice();
+        list.sort(function(a, b) {
+            if (a.is_primary && !b.is_primary) return -1;
+            if (!a.is_primary && b.is_primary) return 1;
+            if (a.group.id === selectedGroupId) return -1;
+            if (b.group.id === selectedGroupId) return 1;
+            return (b.rank || 0) - (a.rank || 0);
+        });
+        return list;
+    }
+
+    async function loadGroupsPage() {
+        if (!currentProfile) return;
+        try {
+            myGroups = await getUserGroups(currentProfile.id);
+            renderSidebar();
+            var gid = new URLSearchParams(window.location.search).get('gid');
+            if (gid) await selectGroup(parseInt(gid, 10));
+            else if (myGroups.length) await selectGroup(myGroups[0].group.id);
+            if (typeof updateDynamicElements === 'function') updateDynamicElements();
+        } catch(e) { console.error(e); }
+    }
+
+    function renderSidebar() {
+        var el = document.getElementById('groupsSidebarList');
+        if (!el) return;
+        if (!myGroups.length) {
+            el.innerHTML = '<p class="groups-empty-sidebar">You are not in any groups.</p>';
+            return;
+        }
+        var html = '';
+        sortSidebarGroups().forEach(function(m) {
+            var g = m.group;
+            html += '<div class="row mb-3 me-1 ms-1 groups-sidebar-entry' + (selectedGroupId === g.id ? ' active' : '') + '" onclick="selectGroup(' + g.id + ')">';
+            html += '<div class="col-3 pe-0"><img class="groups-emblem-round" src="' + esc(g.emblem_url || 'images/logo/f.png') + '" alt=""/></div>';
+            html += '<div class="col-9 ps-1"><p class="mb-0 mt-3 fw-600">' + esc(g.name) + '</p></div></div>';
+        });
+        el.innerHTML = html;
+    }
+
+    async function selectGroup(id) {
+        selectedGroupId = id;
+        searchResults = null;
+        history.replaceState(null, '', 'groups.html?gid=' + id);
+        renderSidebar();
+        var g = await getGroup(id);
+        if (!g) return;
+        currentGroup = g;
+        currentMembership = myGroups.find(function(m) { return m.group.id === id; }) || null;
+        var memberCount = await getGroupMemberCount(id);
+        groupRanks = await getGroupRanks(id);
+        selectedRank = groupRanks.length ? groupRanks[0].name : null;
+        activeGroupTab = 'members';
+
+        var isMember = !!currentMembership;
+        var rankName = currentMembership ? currentMembership.rank_name : null;
+        var isOwner = g.owner_id === currentProfile.id;
+        var isPrimary = currentMembership && currentMembership.is_primary;
+
+        var html = '<div class="row mt-4 me-2 ms-2">';
+        html += '<div class="col-3"><img class="groups-emblem-round" src="' + esc(g.emblem_url || 'images/logo/f.png') + '" alt=""/>';
+        html += '<p class="groups-stat mb-0 mt-2">Owned By: <a href="/profile/' + (g.owner && g.owner.user_number || '') + '">' + esc(g.owner && g.owner.username || 'Nobody!') + '</a></p>';
+        html += '<p class="groups-stat mb-0">Members: ' + memberCount.toLocaleString() + '</p>';
+        if (isMember && rankName) html += '<p class="groups-stat mb-0 mt-3">My Rank: <span class="fw-600">' + esc(rankName) + '</span></p>';
+        if (g.funds_public || isOwner) html += '<p class="groups-stat mb-0">Funds: ' + (g.funds || 0).toLocaleString() + ' Ro-coin</p>';
+        if (!isMember) html += '<div class="mt-4"><button type="button" class="corvixz-play-btn buyButton-0-2-24 w-100" onclick="joinCurrentGroup()">Join</button></div>';
+        html += '</div>';
+        html += '<div class="col-9 ps-0"><h2>' + esc(g.name) + '</h2><p class="groups-desc-block">' + esc(g.description || '') + '</p></div>';
+        html += '<div class="col-12 mt-4"><div class="vtabs-row group-vtabs">';
+        html += '<div class="vtabs-tab selected" data-gtab="members" onclick="switchGroupTab(this)">Members</div>';
+        html += '<div class="vtabs-tab" data-gtab="store" onclick="switchGroupTab(this)">Store</div></div>';
+        html += '<div class="vtabs-spacer"></div><div id="groupTabContent"></div></div>';
+        html += '<div class="col-12 divider-top mt-2"></div>';
+        html += '<div class="col-12 mt-2" id="groupWallSection"></div>';
+        html += '</div>';
+        document.getElementById('groupMainPanel').innerHTML = html;
+        await renderGroupTabContent();
+        await loadGroupWall(isMember);
+
+        var controls = document.getElementById('groupControlsPanel');
+        if (isMember) {
+            controls.style.display = '';
+            var chtml = '<p class="fw-700 font-size-18 mb-2">Controls</p>';
+            if (isOwner) chtml += '<button type="button" class="corvixz-group-btn w-100 mb-1" onclick="location.href=\'group-admin.html?gid=' + g.id + '\'">Group Admin</button>';
+            if (isOwner) chtml += '<button type="button" class="corvixz-group-btn w-100 mb-1" onclick="location.href=\'create-user-ad.html?targetType=group&targetId=' + g.id + '\'">Advertise Group</button>';
+            chtml += '<button type="button" class="corvixz-group-btn w-100 mb-1" onclick="togglePrimaryGroup(' + (isPrimary ? 'true' : 'false') + ')">' + (isPrimary ? 'Remove' : 'Set') + ' Primary</button>';
+            chtml += '<button type="button" class="corvixz-group-btn w-100 mb-1" onclick="leaveCurrentGroup()">Leave Group</button>';
+            controls.innerHTML = chtml;
+        } else {
+            controls.style.display = 'none';
+        }
+    }
+
+    async function renderGroupTabContent() {
+        var el = document.getElementById('groupTabContent');
+        if (!el) return;
+        if (activeGroupTab === 'store') {
+            el.innerHTML = '<p class="corvixz-empty mt-3">Group store coming soon.</p>';
+            return;
+        }
+        if (!groupRanks.length) {
+            el.innerHTML = '<p class="corvixz-empty mt-3">No members yet.</p>';
+            return;
+        }
+        var html = '<div class="row mt-2"><div class="col-12 pe-0 text-end">';
+        html += '<select class="groups-rank-select" onchange="changeMemberRank(this.value)">';
+        groupRanks.forEach(function(r) {
+            html += '<option value="' + esc(r.name) + '"' + (selectedRank === r.name ? ' selected' : '') + '>' + esc(r.name) + ' (' + r.count + ')</option>';
+        });
+        html += '</select></div></div>';
+        html += '<div class="row groups-members-row mt-2" id="groupMembersGrid"></div>';
+        el.innerHTML = html;
+        await loadMembersGrid();
+    }
+
+    async function loadMembersGrid() {
+        var grid = document.getElementById('groupMembersGrid');
+        if (!grid || !selectedGroupId || !selectedRank) return;
+        try {
+            var members = await getGroupMembers(selectedGroupId, selectedRank);
+            if (!members.length) {
+                grid.innerHTML = '<div class="col-12"><p class="corvixz-empty">No members in this rank.</p></div>';
+                return;
+            }
+            var html = '';
+            members.forEach(function(m) {
+                var u = m.user || {};
+                html += '<div class="col-2 groups-member-cell">';
+                html += '<a href="/profile/' + (u.user_number || '') + '" class="groups-member-link">';
+                html += '<img src="' + esc(u.avatar_url || u.headshot_url || 'images/avatar/ava2.png') + '" alt="" class="groups-member-avatar"/>';
+                html += '<p class="mb-0 groups-member-name">' + esc(u.username || 'User') + '</p></a></div>';
+            });
+            grid.innerHTML = html;
+        } catch(e) {
+            grid.innerHTML = '<div class="col-12"><p class="corvixz-empty">Failed to load members.</p></div>';
+        }
+    }
+
+    function changeMemberRank(name) {
+        selectedRank = name;
+        loadMembersGrid();
+    }
+
+    async function loadGroupWall(isMember) {
+        var el = document.getElementById('groupWallSection');
+        if (!el || !selectedGroupId) return;
+        var html = '<div class="group-wall-card"><div class="group-wall-inner">';
+        html += '<h4 class="mb-2 fw-600 font-size-16">Wall</h4>';
+        html += '<p id="groupWallError" class="text-danger mb-2" style="display:none;"></p>';
+        if (isMember) {
+            html += '<div class="row mb-2"><div class="col-10"><textarea id="groupWallInput" class="group-wall-textarea" rows="3" maxlength="1000" placeholder="Write on the group wall..."></textarea></div>';
+            html += '<div class="col-2 d-flex align-items-start"><button type="button" class="corvixz-group-btn w-100" onclick="submitGroupWallPost()">Post</button></div></div>';
+        }
+        html += '<div id="groupWallPosts"></div></div></div>';
+        el.innerHTML = html;
+        await renderGroupWallPosts(isMember);
+    }
+
+    async function renderGroupWallPosts(isMember) {
+        var container = document.getElementById('groupWallPosts');
+        if (!container) return;
+        try {
+            var posts = await getGroupWallPosts(selectedGroupId);
+            if (!posts || !posts.length) {
+                container.innerHTML = '<p class="text-center mt-3 mb-3" style="color:#757575;">Nobody has posted anything</p>';
+                return;
+            }
+            var html = '';
+            posts.forEach(function(p) {
+                var u = p.author || {};
+                var canDelete = currentProfile && (p.author_id === currentProfile.id || (currentGroup && currentGroup.owner_id === currentProfile.id));
+                html += '<div class="group-wall-post mt-1"><div class="group-wall-post-body"><div class="row">';
+                html += '<div class="col-3 pe-2"><a href="/profile/' + (u.user_number || '') + '">';
+                html += '<img class="group-wall-avatar" src="' + esc(u.avatar_url || u.headshot_url || 'images/avatar/headshot.png') + '" alt=""/></a></div>';
+                html += '<div class="col-9"><p class="group-wall-post-text">' + esc(p.body) + '</p>';
+                html += '<p class="group-wall-post-meta">' + new Date(p.created_at).toLocaleString() + ' by ';
+                html += '<a href="/profile/' + (u.user_number || '') + '">' + esc(u.username || 'User') + '</a>';
+                if (canDelete) html += ' · <a href="#" onclick="deleteWallPost(\'' + p.id + '\');return false;">Delete</a>';
+                html += '</p></div></div></div></div>';
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = '<p class="text-danger mt-2 mb-0">Wall is temporarily unavailable. Run group wall SQL in Supabase.</p>';
+        }
+    }
+
+    async function submitGroupWallPost() {
+        var input = document.getElementById('groupWallInput');
+        var err = document.getElementById('groupWallError');
+        var body = input && input.value.trim();
+        if (!body) return;
+        if (err) err.style.display = 'none';
+        try {
+            await postGroupWall(selectedGroupId, body);
+            if (input) input.value = '';
+            await renderGroupWallPosts(true);
+        } catch(e) {
+            if (err) { err.textContent = e.message || 'Failed to post'; err.style.display = ''; }
+            else alert(e.message || 'Failed to post');
+        }
+    }
+
+    async function deleteWallPost(id) {
+        if (!confirm('Delete this post?')) return;
+        try { await deleteGroupWallPost(id); await renderGroupWallPosts(!!currentMembership); }
+        catch(e) { alert(e.message || 'Failed to delete'); }
+    }
+
+    function switchGroupTab(el) {
+        document.querySelectorAll('.group-vtabs .vtabs-tab').forEach(function(t) { t.classList.remove('selected'); });
+        el.classList.add('selected');
+        activeGroupTab = el.getAttribute('data-gtab');
+        renderGroupTabContent();
+    }
+
+    async function searchGroups(e) {
+        e.preventDefault();
+        var q = document.getElementById('groupSearchInput').value.trim();
+        if (!q) return;
+        try {
+            var results = await searchGroupsByName(q);
+            if (!results.length) {
+                document.getElementById('groupMainPanel').innerHTML = '<p class="corvixz-empty mt-3">No groups found for &quot;' + esc(q) + '&quot;.</p>';
+                document.getElementById('groupControlsPanel').style.display = 'none';
+                return;
+            }
+            if (results.length === 1) {
+                await selectGroup(results[0].id);
+                return;
+            }
+            var html = '<h3 class="mt-3">Search Results</h3><div class="row mt-2">';
+            results.forEach(function(g) {
+                html += '<div class="col-12 mb-2"><a href="#" onclick="selectGroup(' + g.id + ');return false;" class="fw-600">' + esc(g.name) + '</a>';
+                html += ' <span class="groups-stat">— ' + esc(g.description || '').substring(0, 80) + '</span></div>';
+            });
+            html += '</div>';
+            document.getElementById('groupMainPanel').innerHTML = html;
+            document.getElementById('groupControlsPanel').style.display = 'none';
+        } catch(err) {
+            alert(err.message || 'Search failed');
+        }
+    }
+
+    async function joinCurrentGroup() {
+        if (!selectedGroupId) return;
+        try {
+            var res = await joinGroup(selectedGroupId);
+            if (res && res.pending) {
+                alert('Join request sent. Waiting for owner approval.');
+                return;
+            }
+            await loadGroupsPage();
+            await selectGroup(selectedGroupId);
+        }
+        catch(e) { alert(e.message || 'Failed to join'); }
+    }
+
+    async function leaveCurrentGroup() {
+        if (!selectedGroupId || !confirm('Leave this group?')) return;
+        try { await leaveGroup(selectedGroupId); window.location.href = 'groups.html'; }
+        catch(e) { alert(e.message || 'Failed to leave'); }
+    }
+
+    async function togglePrimaryGroup(isPrimary) {
+        if (!selectedGroupId) return;
+        try {
+            if (isPrimary) await removePrimaryGroup();
+            else await setPrimaryGroup(selectedGroupId);
+            await loadGroupsPage();
+            await selectGroup(selectedGroupId);
+        } catch(e) { alert(e.message || 'Failed to update primary group'); }
+    }
+
+    var check = setInterval(function() { if (currentProfile) { clearInterval(check); loadGroupsPage(); } }, 100);
+    </script>
+</body>
+</html>
+

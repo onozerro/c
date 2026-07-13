@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html style="--primary-color: #0074BD; --primary-color-2: #0074BD; --primary-color-hover: #005a94; --secondary-color: #005a94;">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://abgizefxtsrakahwzrcy.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Site Administration - CORVIXZ</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/f.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <script src="../js/config.js"></script>
+    <script src="../js/client.js"></script>
+    <script src="../js/auth/guard.js"></script>
+</head>
+<body class="theme-2016">
+    <div id="notifOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9999;justify-content:center;align-items:center;"></div>
+    <div id="confirmModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:0;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;min-width:320px;text-align:center;">
+        <div id="confirmText" style="font-size:15px;font-weight:600;margin-bottom:16px;color:#333;"></div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button id="confirmYesBtn" class="seeAllButton-0-2-20" style="padding:8px 24px;font-size:14px;border:none;cursor:pointer;">Yes</button>
+            <button id="confirmNoBtn" class="cancelButton-0-2-27" style="padding:8px 24px;font-size:14px;cursor:pointer;" onclick="hideConfirm()">Cancel</button>
+        </div>
+    </div>
+    <div id="notificationToast" style="display:none;position:fixed;top:20px;right:20px;background:#004696;color:#fff;padding:12px 24px;border-radius:0;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 2px 10px rgba(0,0,0,0.2);"></div>
+    <div id="__next">
+        <div class="page-shell">
+            <div id="navbar-placeholder"></div>
+            <div class="container-0-2-4">
+                <div class="page-wrap admin-page-wrap">
+                        <div id="notAdminMsg" class="not-admin-msg card-2016" style="display:none;padding:40px 20px;">
+                            <h2>Access Denied</h2>
+                            <p>You do not have administrator privileges.</p>
+                            <a href="/home/" class="seeAllButton-0-2-20" style="display:inline-block;padding:10px 24px;text-decoration:none;margin-top:12px;">Back to Home</a>
+                        </div>
+                        <div id="adminPanel" style="display:none;">
+                            <h1 class="page-title-lg">Site Administration</h1>
+                            <div class="tabs2016-bar" id="adminTabsBar">
+                                <div class="tabs2016-tab admin-nav-tab active" data-tab="users" data-role="users">Users</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="invites" data-role="invites">Invite Codes</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="bans" data-role="bans">Bans</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="ads" data-role="ads">Ads</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="items" data-role="items">Items</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="games" data-role="games">Games</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="forum" data-role="forum">Forum</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="groups" data-role="groups">Groups</div>
+                                <div class="tabs2016-tab admin-nav-tab" data-tab="alert" data-role="alert">Site Alert</div>
+                            </div>
+                            <div class="admin-panel-card settings-card">
+                            <div id="tab-users" class="admin-tab-content active">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Registered Users</h3>
+                                        <input type="text" id="userSearchInput" placeholder="Search users..." style="padding:6px 10px;font-size:13px;border:1px solid var(--text-color-quinary);border-radius:0;width:200px;"/>
+                                    </div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="usersTable">
+                                            <thead><tr><th>Avatar</th><th>Username</th><th>ID</th><th>Role</th><th>Created</th><th>Currency</th><th>Actions</th></tr></thead>
+                                            <tbody id="usersTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="usersLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading users...</div>
+                                </div>
+                            </div>
+                            <div id="tab-invites" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Invite Codes</h3>
+                                        <div style="display:flex;gap:8px;align-items:center;">
+                                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                                                <input type="checkbox" id="showUsedCodes" onchange="loadInvites()">
+                                                Show used
+                                            </label>
+                                            <select id="inviteQty" style="padding:4px 6px;font-size:12px;border:1px solid #ccc;border-radius:0;">
+                                                <option value="1">1</option>
+                                                <option value="5" selected>5</option>
+                                                <option value="10">10</option>
+                                                <option value="25">25</option>
+                                            </select>
+                                            <button class="btn-admin btn-admin-primary" onclick="createInviteCodes()">Generate</button>
+                                        </div>
+                                    </div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table">
+                                            <thead><tr><th>Code</th><th>Created By</th><th>Used</th><th>Used By</th><th>Created</th></tr></thead>
+                                            <tbody id="inviteCodesBody"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="invitesLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading invite codes...</div>
+                                </div>
+                            </div>
+                            <div id="tab-bans" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <h3>Ban History</h3>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table">
+                                            <thead><tr><th>User</th><th>Reason</th><th>Banned By</th><th>Date</th></tr></thead>
+                                            <tbody id="bansBody"></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="bansLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading bans...</div>
+                                </div>
+                            </div>
+                            <div id="tab-items" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Items Catalog</h3>
+                                        <button class="btn-admin btn-admin-primary" onclick="showCreateItemForm()">Create Item</button>
+                                    </div>
+                                    <div id="itemsLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading items...</div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="itemsTable" style="display:none;">
+                                            <thead><tr><th>#</th><th>Image</th><th>Name</th><th>Type</th><th>Limited</th><th>Price</th><th>Sales</th><th>Actions</th></tr></thead>
+                                            <tbody id="itemsTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="createItemForm" style="display:none;border-top:1px solid var(--text-color-quinary);padding-top:16px;margin-top:16px;">
+                                    <h3 style="font-size:18px;font-weight:700;margin:0 0 12px;" id="itemFormTitle">Create New Item</h3>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px;">
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Name</label><input type="text" id="itemNameInput" class="form-control" placeholder="Item name"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Type</label><select id="itemTypeInput" class="form-control"><option>Hat</option><option>Hair</option><option>Face</option><option>Gear</option><option>Accessory</option></select></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Price</label><input type="number" id="itemPriceInput" class="form-control" placeholder="0" min="0"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Item Image</label><input type="file" id="itemImageInput" accept="image/*"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Full Avatar Preview</label><input type="file" id="itemAvatarInput" accept="image/*"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Headshot Preview (круг)</label><input type="file" id="itemHeadshotInput" accept="image/*"/></div>
+                                        <div style="grid-column:1/3;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Description</label><textarea id="itemDescInput" class="form-control" rows="3" placeholder="Item description..."></textarea></div>
+                                        <div style="grid-column:1/3;border-top:1px solid #ddd;padding-top:12px;margin-top:4px;">
+                                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Limited</label>
+                                            <div style="display:flex;gap:16px;align-items:center;">
+                                                <label style="font-size:13px;"><input type="checkbox" id="itemLimitedInput" onchange="toggleLimitedUnique()"> Limited</label>
+                                                <label style="font-size:13px;"><input type="checkbox" id="itemLimitedUniqueInput" onchange="toggleLimitedUnique()"> Limited Unique</label>
+                                                <label style="font-size:13px;display:none;" id="serialCountLabel">Serial Count: <input type="number" id="itemSerialCountInput" min="1" value="50" style="width:70px;padding:2px 6px;"/></label>
+                                            </div>
+                                        </div>
+                                        <div id="existingCompositesSection" style="grid-column:1/3;border-top:1px solid #ddd;padding-top:12px;margin-top:4px;display:none;">
+                                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Composite uploads (when worn with existing items)</label>
+                                            <div id="existingCompositesList"></div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:12px;display:flex;gap:8px;">
+                                        <button class="btn-admin btn-admin-primary" id="saveItemBtn" onclick="saveNewItem()">Save Item</button>
+                                        <button class="btn-admin btn-admin-muted" onclick="document.getElementById('createItemForm').style.display='none'">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-ads" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Ad Management</h3>
+                                        <div>
+                                            <input type="file" id="adImageInput" accept="image/*" style="display:none;"/>
+                                            <button class="btn-admin btn-admin-primary" onclick="document.getElementById('adImageInput').click()">Upload Ad Image</button>
+                                        </div>
+                                    </div>
+                                    <div id="adsLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading ads...</div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="adsTable" style="display:none;">
+                                            <thead><tr><th>Image</th><th>Type / Target</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+                                            <tbody id="adsTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-games" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Games Catalog</h3>
+                                        <button class="btn-admin btn-admin-primary" onclick="showCreateGameForm()">Create Game</button>
+                                    </div>
+                                    <div id="gamesLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading games...</div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="gamesTable" style="display:none;">
+                                            <thead><tr><th>ID</th><th>Thumb</th><th>Title</th><th>Creator</th><th>Genre</th><th>Playing</th><th>Visits</th><th>Actions</th></tr></thead>
+                                            <tbody id="gamesTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div id="createGameForm" style="display:none;border-top:1px solid var(--text-color-quinary);padding-top:16px;margin-top:16px;">
+                                    <h3 style="font-size:18px;font-weight:700;margin:0 0 12px;" id="gameFormTitle">Create New Game</h3>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px;">
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Title</label><input type="text" id="gameTitleInput" class="form-control" placeholder="Game title"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Genre</label><select id="gameGenreInput" class="form-control"><option value="">None</option><option>Adventure</option><option>Fighting</option><option>FPS</option><option>Horror</option><option>RPG</option><option>Tycoon</option></select></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Year</label><input type="text" id="gameYearInput" class="form-control" placeholder="2017" value="2017"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Max Players</label><input type="number" id="gameMaxPlayersInput" class="form-control" placeholder="99"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Allowed Gear</label><input type="text" id="gameGearInput" class="form-control" placeholder="None"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Thumbnail (grid, 256×256)</label><input type="file" id="gameThumbInput" accept="image/*"/></div>
+                                        <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Thumbnail Big (page, 768×432)</label><input type="file" id="gameThumbBigInput" accept="image/*"/></div>
+                                        <div style="grid-column:1/3;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Description</label><textarea id="gameDescInput" class="form-control" rows="3" placeholder="Game description..."></textarea></div>
+                                    </div>
+                                    <div style="margin-top:12px;display:flex;gap:8px;">
+                                        <button class="btn-admin btn-admin-primary" id="saveGameBtn" onclick="saveNewGame()">Save Game</button>
+                                        <button class="btn-admin btn-admin-muted" onclick="document.getElementById('createGameForm').style.display='none'">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-forum" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <h3>Forum Moderation</h3>
+                                    <div id="forumAdminLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading forum threads...</div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="forumAdminTable" style="display:none;">
+                                            <thead><tr><th>ID</th><th>Title</th><th>Board</th><th>Author</th><th>Pinned</th><th>Locked</th><th>Actions</th></tr></thead>
+                                            <tbody id="forumAdminBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-groups" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <h3>Group Moderation</h3>
+                                    <div style="display:flex;gap:8px;margin-bottom:10px;">
+                                        <input type="text" id="groupSearchInput" placeholder="Search groups..." style="padding:6px 10px;font-size:13px;border:1px solid var(--text-color-quinary);border-radius:0;width:200px;"/>
+                                    </div>
+                                    <div id="groupsLoading" style="text-align:center;padding:30px;color:var(--text-color-tertiary);">Loading groups...</div>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" id="groupsTable" style="display:none;">
+                                            <thead><tr><th>ID</th><th>Emblem</th><th>Name</th><th>Owner</th><th>Members</th><th>Created</th><th>Actions</th></tr></thead>
+                                            <tbody id="groupsTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tab-alert" class="admin-tab-content">
+                                <div class="admin-section">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                        <h3>Site Alert Banner</h3>
+                                        <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="alertActive"/> Active</label>
+                                    </div>
+                                    <div style="margin-bottom:10px;">
+                                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Alert Text</label>
+                                        <input type="text" id="alertText" class="form-control" placeholder="Enter alert text..." style="max-width:500px;"/>
+                                    </div>
+                                    <div style="margin-bottom:10px;">
+                                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Link URL (optional)</label>
+                                        <input type="text" id="alertLinkUrl" class="form-control" placeholder="https://..." style="max-width:500px;"/>
+                                    </div>
+                                    <div style="display:flex;gap:12px;margin-bottom:15px;">
+                                        <div>
+                                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Background Color</label>
+                                            <input type="color" id="alertBgColor" value="#F68802" style="width:60px;height:36px;padding:2px;border:1px solid #ccc;border-radius:0;cursor:pointer;"/>
+                                        </div>
+                                        <div>
+                                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Text Color</label>
+                                            <input type="color" id="alertTextColor" value="#ffffff" style="width:60px;height:36px;padding:2px;border:1px solid #ccc;border-radius:0;cursor:pointer;"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn-admin btn-admin-primary" onclick="saveSiteAlert()">Save Alert Settings</button>
+                                        <span id="alertSaveMsg" style="margin-left:10px;font-size:13px;color:#28a745;display:none;">Saved!</span>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+    <script src="../js/auth/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui/include.js"></script>
+    <script>
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    var adminTabAccess = {};
+
+    function applyAdminTabAccess() {
+        adminTabAccess = getAdminTabAccess(currentProfile);
+        var firstTab = null;
+        document.querySelectorAll('.admin-nav-tab').forEach(function(item) {
+            var role = item.getAttribute('data-role');
+            var allowed = adminTabAccess[role];
+            item.style.display = allowed ? '' : 'none';
+            if (allowed && !firstTab) firstTab = item.getAttribute('data-tab');
+        });
+        if (firstTab) showTab(firstTab);
+    }
+
+    function showTab(tabName) {
+        if (adminTabAccess[tabName] === false) return;
+        document.querySelectorAll('.admin-nav-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.remove('active'); });
+        var navItem = document.querySelector('.admin-nav-tab[data-tab="' + tabName + '"]');
+        var tabEl = document.getElementById('tab-' + tabName);
+        if (navItem) navItem.classList.add('active');
+        if (tabEl) tabEl.classList.add('active');
+        if (tabName === 'forum') loadForumAdmin();
+    }
+    document.querySelectorAll('.admin-nav-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() { showTab(this.getAttribute('data-tab')); });
+    });
+
+    function showNotification(msg, isError) {
+        var n = document.getElementById('notificationToast');
+        n.textContent = msg;
+        n.style.background = isError ? '#d86868' : '#00A2FF';
+        n.style.display = 'block';
+        setTimeout(function() { n.style.display = 'none'; }, 3000);
+    }
+    function showConfirm(text, onYes) {
+        document.getElementById('confirmText').textContent = text;
+        document.getElementById('confirmModal').style.display = 'block';
+        document.getElementById('notifOverlay').style.display = 'flex';
+        document.getElementById('confirmYesBtn').onclick = function() {
+            hideConfirm();
+            if (onYes) onYes();
+        };
+    }
+    function hideConfirm() {
+        document.getElementById('confirmModal').style.display = 'none';
+        document.getElementById('notifOverlay').style.display = 'none';
+    }
+
+    function renderUsersTable(users) {
+        var tbody = document.getElementById('usersTableBody');
+        document.getElementById('usersLoading').style.display = 'none';
+        if (!users || users.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No users found.</td></tr>'; return; }
+        tbody.innerHTML = '';
+        users.forEach(function(u) {
+            var tr = document.createElement('tr');
+            var roleHtml = '';
+            if (u.is_admin) roleHtml += '<span class="badge-admin">Admin</span> ';
+            if (u.is_moderator) roleHtml += '<span class="badge-verified" style="background:#6c9bd2;color:#fff;">Mod</span> ';
+            if (u.is_item_admin) roleHtml += '<span class="badge-verified" style="background:#8b6fc0;color:#fff;">Items</span> ';
+            if (u.is_verified) roleHtml += '<span class="badge-verified">Verified</span> ';
+            if (!u.is_admin && !u.is_moderator && !u.is_item_admin && !u.is_verified) roleHtml += '<span style="color:var(--text-color-tertiary);font-size:12px;">User</span>';
+            var banBtn = u.is_banned
+                ? '<button class="btn-admin btn-admin-success" onclick="banUser(\'' + esc(u.id) + '\')">Unban</button>'
+                : '<button class="btn-admin btn-admin-danger" onclick="banUser(\'' + esc(u.id) + '\')">Ban</button>';
+            var roleBtn = '';
+            if (currentProfile && currentProfile.is_admin && u.id !== currentProfile.id) {
+                roleBtn = ' <button class="btn-admin btn-admin-primary" onclick="openRoleModal(\'' + esc(u.id) + '\',\'' + esc(u.username) + '\',' + !!u.is_admin + ',' + !!u.is_moderator + ',' + !!u.is_item_admin + ',' + !!u.is_verified + ')">Roles</button>';
+            }
+            var profileUrl = 'profile.html?id=' + esc(u.user_number || u.id);
+            var delBtn = (currentProfile && currentProfile.is_admin && u.id !== currentProfile.id)
+                ? ' <button class="btn-admin btn-admin-muted" onclick="showConfirm(\'Delete this user permanently? This cannot be undone.\', function() { adminDeleteUser(\'' + esc(u.id) + '\').then(function() { showNotification(\'User deleted.\'); loadAdminData(); }).catch(function(e) { showNotification(\'Error: \' + e.message, true); }); })">Delete</button>'
+                : '';
+            var resetPwBtn = (currentProfile && currentProfile.is_admin && u.id !== currentProfile.id)
+                ? ' <button class="btn-admin btn-admin-primary" onclick="adminSetPassword(\'' + esc(u.id) + '\')">Set PW</button>'
+                : '';
+            tr.innerHTML = '<td style="cursor:pointer;" onclick="window.open(\'' + profileUrl + '\')"><img src="' + esc(u.headshot_url || 'images/avatar/headshot.png') + '" height="32" width="32" style="border-radius:50%;object-fit:cover;"/></td>'
+                + '<td><strong><a href="' + profileUrl + '" target="_blank" style="color:inherit;text-decoration:none;">' + esc(u.username) + '</a></strong>' + (u.is_verified ? ' <img src="../images/logo/verif.png" height="14" alt="✓"/>' : '') + '</td>'
+                + '<td style="font-size:11px;color:var(--text-color-tertiary);font-family:monospace;">' + esc(u.id.slice(0,8)) + '...</td>'
+                + '<td>' + roleHtml + '</td>'
+                + '<td style="font-size:12px;">' + new Date(u.created_at).toLocaleDateString() + '</td>'
+                + '<td style="font-size:12px;white-space:nowrap;"><span style="display:inline-flex;align-items:center;gap:6px;"><span>' + (u.currency != null ? u.currency : 0) + '</span>'
+                + (currentProfile && currentProfile.is_admin && u.id !== currentProfile.id ? '<button class="btn-admin btn-admin-success" style="padding:1px 6px;font-size:11px;line-height:1.4;" onclick="event.stopPropagation();adminGiveCurrency(\'' + esc(u.id) + '\')">+</button>' : '') + '</span></td>'
+                + '<td style="white-space:nowrap;">' + banBtn + roleBtn + delBtn + resetPwBtn + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderInviteCodes(codes) {
+        var tbody = document.getElementById('inviteCodesBody');
+        document.getElementById('invitesLoading').style.display = 'none';
+        var showUsed = document.getElementById('showUsedCodes') && document.getElementById('showUsedCodes').checked;
+        var filtered = showUsed ? codes : (codes ? codes.filter(function(c) { return !c.is_used; }) : []);
+        if (!filtered || filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">' + (showUsed ? 'No invite codes.' : 'No available codes. <label style="color:var(--primary-color);cursor:pointer;" onclick="document.getElementById(\'showUsedCodes\').checked=true;loadInvites();">Show used</label>') + '</td></tr>'; return; }
+        tbody.innerHTML = '';
+        filtered.forEach(function(c) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td><span class="copy-field" onclick="copyText(this)">' + esc(c.code) + '</span></td>'
+                + '<td>' + (c.creator ? esc(c.creator.username) : '—') + '</td>'
+                + '<td>' + (c.is_used ? '<span style="color:#d86868;font-weight:600;">Used</span>' : '<span style="color:#28a745;font-weight:600;">Available</span>') + '</td>'
+                + '<td>' + esc(c.used_by || '—') + '</td>'
+                + '<td style="font-size:12px;">' + new Date(c.created_at).toLocaleDateString() + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderBans(bans) {
+        var tbody = document.getElementById('bansBody');
+        document.getElementById('bansLoading').style.display = 'none';
+        if (!bans || bans.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No bans recorded.</td></tr>'; return; }
+        tbody.innerHTML = '';
+        bans.forEach(function(b) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + (b.user ? esc(b.user.username) : 'Unknown') + '</td>'
+                + '<td>' + esc(b.reason || '—') + '</td>'
+                + '<td>' + (b.banner ? esc(b.banner.username) : '—') + '</td>'
+                + '<td style="font-size:12px;">' + new Date(b.created_at).toLocaleDateString() + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function copyText(el) {
+        var text = el.textContent;
+        if (navigator.clipboard) { navigator.clipboard.writeText(text); el.textContent = 'Copied!'; setTimeout(function() { el.textContent = text; }, 1500); }
+    }
+
+    async function loadAdminData() {
+        try {
+            if (!hasAdminAccess(currentProfile)) {
+                document.getElementById('adminPanel').style.display = 'none';
+                document.getElementById('notAdminMsg').style.display = 'block';
+                return;
+            }
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('notAdminMsg').style.display = 'none';
+            applyAdminTabAccess();
+
+            if (adminTabAccess.users) {
+                var users = await getAllUsers();
+                renderUsersTable(users);
+            }
+            await loadInvites();
+            if (adminTabAccess.bans) {
+                var bans = await getBans();
+                renderBans(bans);
+            }
+            if (adminTabAccess.alert) await loadSiteAlertSettings();
+            if (adminTabAccess.ads) await loadAds();
+            if (adminTabAccess.items) await loadItems();
+            if (adminTabAccess.games) await loadGamesData();
+            if (adminTabAccess.groups) await loadGroupsData();
+            if (adminTabAccess.forum) await loadForumAdmin();
+        } catch(e) { console.error('Admin load error:', e); }
+    }
+
+    function openRoleModal(userId, username, isAdmin, isMod, isItem, isVerified) {
+        var html = 'Set roles for <strong>' + esc(username) + '</strong>:<br><br>'
+            + '<label style="display:block;margin:6px 0;"><input type="checkbox" id="roleVerified" ' + (isVerified ? 'checked' : '') + '/> Verified</label>'
+            + '<label style="display:block;margin:6px 0;"><input type="checkbox" id="roleAdmin" ' + (isAdmin ? 'checked' : '') + '/> Full Admin</label>'
+            + '<label style="display:block;margin:6px 0;"><input type="checkbox" id="roleMod" ' + (isMod ? 'checked' : '') + '/> Moderator (Ads + Forum)</label>'
+            + '<label style="display:block;margin:6px 0;"><input type="checkbox" id="roleItem" ' + (isItem ? 'checked' : '') + '/> Item Admin (Catalog)</label>';
+        document.getElementById('confirmText').innerHTML = html;
+        document.getElementById('confirmModal').style.display = 'block';
+        document.getElementById('notifOverlay').style.display = 'flex';
+        document.getElementById('confirmYesBtn').textContent = 'Save';
+        document.getElementById('confirmYesBtn').onclick = function() {
+            hideConfirm();
+            document.getElementById('confirmYesBtn').textContent = 'Yes';
+            var verified = document.getElementById('roleVerified').checked;
+            var p1 = adminSetUserRole(userId, {
+                is_admin: document.getElementById('roleAdmin').checked,
+                is_moderator: document.getElementById('roleMod').checked,
+                is_item_admin: document.getElementById('roleItem').checked
+            });
+            var p2 = supabaseFetch(API_URL + '/rpc/admin_verify_user', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ target_user_id: userId, verified: verified })
+            });
+            Promise.all([p1, p2]).then(function() {
+                showNotification('Roles updated.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        };
+    }
+
+    async function loadInvites() {
+        try {
+            var invites = await getInviteCodes();
+            renderInviteCodes(invites);
+        } catch(e) {
+            var el = document.getElementById('invitesLoading');
+            if (el) { el.style.display = 'none'; }
+            var tbody = document.getElementById('inviteCodesBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d86868;">Failed to load invite codes: ' + esc(e.message || e) + '</td></tr>';
+            console.error(e);
+        }
+    }
+
+    async function createInviteCodes() {
+        var qty = parseInt(document.getElementById('inviteQty').value) || 1;
+        try {
+            var newCodes = [];
+            for (var i = 0; i < qty; i++) {
+                var code = await adminCreateInviteCode(currentProfile.id);
+                newCodes.push(code);
+            }
+            if (newCodes.length) {
+                var html = '<div style="margin-bottom:10px;">Created ' + newCodes.length + ' codes:</div>'
+                    + '<div id="newCodesList" style="background:#f5f5f5;padding:12px;font-family:monospace;font-size:13px;line-height:1.6;white-space:pre;cursor:pointer;" onclick="copyCodesColumn()">' + esc(newCodes.join('\n')) + '</div>'
+                    + '<div style="font-size:11px;color:var(--text-color-tertiary);margin-top:6px;">Click the box to copy all codes</div>';
+                document.getElementById('confirmText').textContent = '';
+                document.getElementById('confirmText').innerHTML = html;
+                document.getElementById('confirmModal').style.display = 'block';
+                document.getElementById('notifOverlay').style.display = 'flex';
+                document.getElementById('confirmYesBtn').textContent = 'Close';
+                document.getElementById('confirmYesBtn').onclick = function() { hideConfirm(); document.getElementById('confirmYesBtn').textContent = 'Yes'; };
+            }
+            loadInvites();
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    function copyCodesColumn() {
+        var el = document.getElementById('newCodesList');
+        if (!el) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(el.textContent);
+            var old = el.textContent;
+            el.textContent = 'Copied!';
+            setTimeout(function() { el.textContent = old; }, 1500);
+        }
+    }
+
+    async function banUser(userId) {
+        showConfirm('Are you sure you want to ban this user?', function() {
+            var reason = prompt('Ban reason:');
+            if (!reason) { showNotification('Ban cancelled.', true); return; }
+            adminBanUser(userId, reason, currentProfile.id).then(function() {
+                showNotification('User banned.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    async function unbanUser(userId) {
+        showConfirm('Are you sure you want to unban this user?', function() {
+            adminUnbanUser(userId).then(function() {
+                showNotification('User unbanned.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    async function adminDeleteUser(userId) {
+        return supabaseFetch(API_URL + '/rpc/admin_delete_user', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ target_user_id: userId })
+        });
+    }
+
+    async function adminGiveCurrency(userId) {
+        var amount = prompt('Enter amount of currency to give:');
+        if (!amount) return;
+        amount = parseInt(amount);
+        if (isNaN(amount) || amount <= 0) { showNotification('Invalid amount.', true); return; }
+        showConfirm('Give ' + amount + ' currency to this user?', function() {
+            supabaseFetch(API_URL + '/rpc/admin_give_currency', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ target_user_id: userId, amount: amount })
+            }).then(function() {
+                showNotification('Gave ' + amount + ' currency.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    async function adminSetPassword(userId) {
+        var newPw = prompt('Enter new password for this user:');
+        if (!newPw || newPw.length < 6) { showNotification('Password must be at least 6 characters.', true); return; }
+        showConfirm('Are you sure you want to set a new password for this user?', function() {
+            supabaseFetch(API_URL + '/rpc/admin_set_password', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ target_user_id: userId, new_password: newPw })
+            }).then(function() {
+                showNotification('Password changed.');
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    var allGroupsData = [];
+
+    function renderGroupsTable(groups) {
+        var tbody = document.getElementById('groupsTableBody');
+        var loading = document.getElementById('groupsLoading');
+        var table = document.getElementById('groupsTable');
+        loading.style.display = 'none';
+        if (!groups || groups.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No groups found.</td></tr>';
+            return;
+        }
+        table.style.display = '';
+        tbody.innerHTML = '';
+        var search = document.getElementById('groupSearchInput').value.toLowerCase().trim();
+        var filtered = search ? groups.filter(function(g) { return g.name.toLowerCase().indexOf(search) !== -1 || (g.owner && g.owner.username && g.owner.username.toLowerCase().indexOf(search) !== -1); }) : groups;
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No groups match search.</td></tr>';
+            return;
+        }
+        filtered.forEach(function(g) {
+            var tr = document.createElement('tr');
+            var ownerName = g.owner ? esc(g.owner.username) : '—';
+            tr.innerHTML = '<td style="font-size:11px;font-family:monospace;">' + g.id + '</td>'
+                + '<td><img src="' + esc(g.emblem_url || 'images/logo/f.png') + '" height="28" style="border-radius:4px;"/></td>'
+                + '<td><strong><a href="/groups/' + g.id + '" target="_blank" style="color:#0055b3;">' + esc(g.name) + '</a></strong></td>'
+                + '<td>' + ownerName + '</td>'
+                + '<td style="font-size:12px;">' + (g.member_count || '?') + '</td>'
+                + '<td style="font-size:12px;">' + new Date(g.created_at).toLocaleDateString() + '</td>'
+                + '<td>'
+                + ' <button class="btn-admin btn-admin-primary" onclick="window.open(\'groups.html?gid=' + g.id + '\')">View</button>'
+                + ' <button class="btn-admin btn-admin-danger" onclick="showConfirm(\'Delete group ' + esc(g.name) + ' and all its data? This cannot be undone.\', function() { deleteGroup(' + g.id + ').then(function() { showNotification(\'Group deleted.\'); loadGroupsData(); }).catch(function(e) { showNotification(\'Error: \' + e.message, true); }); })">Delete</button>'
+                + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function loadGroupsData() {
+        try {
+            var groups = await getGroups();
+            for (var i = 0; i < (groups || []).length; i++) {
+                try {
+                    groups[i].member_count = await getGroupMemberCount(groups[i].id);
+                } catch(e) { groups[i].member_count = '?'; }
+            }
+            allGroupsData = groups || [];
+            renderGroupsTable(allGroupsData);
+        } catch(e) {
+            document.getElementById('groupsLoading').innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-color-tertiary);">Error loading groups.</p>';
+        }
+    }
+
+    document.getElementById('groupSearchInput').addEventListener('input', function() { renderGroupsTable(allGroupsData); });
+
+    async function verifyUser(userId) {
+        showConfirm('Verify this user?', function() {
+            supabaseFetch(API_URL + '/rpc/admin_verify_user', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ target_user_id: userId, verified: true })
+            }).then(function() {
+                showNotification('User verified.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    async function unverifyUser(userId) {
+        showConfirm('Remove verification from this user?', function() {
+            supabaseFetch(API_URL + '/rpc/admin_verify_user', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ target_user_id: userId, verified: false })
+            }).then(function() {
+                showNotification('Verification removed.');
+                loadAdminData();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    async function loadSiteAlertSettings() {
+        try {
+            var data = await supabaseFetch(API_URL + '/site_alerts?select=*&id=eq.1', { headers: authHeaders() });
+            if (data && data.length) {
+                var a = data[0];
+                document.getElementById('alertText').value = a.text || '';
+                document.getElementById('alertLinkUrl').value = a.link_url || '';
+                document.getElementById('alertBgColor').value = a.bg_color || '#F68802';
+                document.getElementById('alertTextColor').value = a.text_color || '#ffffff';
+                document.getElementById('alertActive').checked = a.is_active || false;
+            }
+        } catch(e) { console.error('Load alert error:', e); }
+    }
+
+    async function saveSiteAlert() {
+        var text = document.getElementById('alertText').value.trim();
+        var linkUrl = document.getElementById('alertLinkUrl').value.trim();
+        var bg = document.getElementById('alertBgColor').value;
+        var tc = document.getElementById('alertTextColor').value;
+        var active = document.getElementById('alertActive').checked;
+        try {
+            await supabaseFetch(API_URL + '/site_alerts?id=eq.1', {
+                method: 'PATCH',
+                headers: authHeaders(),
+                body: JSON.stringify({ text: text, link_url: linkUrl || null, bg_color: bg, text_color: tc, is_active: active })
+            });
+            if (window.clearSiteAlertCache) window.clearSiteAlertCache();
+            if (typeof loadSiteAlert === 'function') loadSiteAlert();
+            var msg = document.getElementById('alertSaveMsg');
+            if (msg) { msg.style.display = 'inline'; setTimeout(function() { msg.style.display = 'none'; }, 2000); }
+            showNotification('Site alert saved.');
+        } catch(e) { showNotification('Error saving alert: ' + e.message, true); }
+    }
+
+    document.getElementById('adImageInput').addEventListener('change', async function() {
+        var file = this.files[0];
+        if (!file) return;
+        try {
+            await uploadAd(file);
+            loadAds();
+        } catch(e) { showNotification('Upload error: ' + e.message, true); }
+        this.value = '';
+    });
+
+    async function loadAds() {
+        try {
+            var ads = await getAds();
+            var tbody = document.getElementById('adsTableBody');
+            var loading = document.getElementById('adsLoading');
+            var table = document.getElementById('adsTable');
+            loading.style.display = 'none';
+            if (!ads || ads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No ads uploaded yet.</td></tr>';
+                return;
+            }
+            table.style.display = '';
+            tbody.innerHTML = '';
+            ads.forEach(function(ad) {
+                var tr = document.createElement('tr');
+                var statusHtml = ad.is_active
+                    ? '<span style="color:#28a745;font-weight:600;">Active</span>'
+                    : '<span style="color:#d86868;font-weight:600;">Inactive</span>';
+                var typeLabel = esc(ad.ad_type || 'admin');
+                var targetLabel = ad.target_type ? (esc(ad.target_type) + ' #' + esc(ad.target_id)) : '—';
+                tr.innerHTML = '<td><img src="' + esc(ad.image_url) + '" height="40" style="border-radius:0;object-fit:cover;"/></td>'
+                    + '<td>' + typeLabel + ' · ' + targetLabel + '</td>'
+                    + '<td>' + statusHtml + '</td>'
+                    + '<td style="font-size:12px;">' + new Date(ad.created_at).toLocaleDateString() + '</td>'
+                    + '<td>'
+                    + (ad.is_active
+                        ? '<button class="btn-admin btn-admin-danger" onclick="showConfirm(\'Deactivate this ad?\', function() { toggleAd(\'' + esc(ad.id) + '\', false); loadAds(); showNotification(\'Ad deactivated.\'); })">Deactivate</button>'
+                        : '<button class="btn-admin btn-admin-success" onclick="toggleAd(\'' + esc(ad.id) + '\', true); loadAds();">Activate</button>')
+                    + ' <button class="btn-admin btn-admin-muted" onclick="showConfirm(\'Delete this ad? This cannot be undone.\', function() { deleteAd(\'' + esc(ad.id) + '\'); loadAds(); showNotification(\'Ad deleted.\'); })">Delete</button>'
+                    + '</td>';
+                tbody.appendChild(tr);
+            });
+        } catch(e) { console.error('Load ads error:', e); }
+    }
+
+    var editingItemId = null;
+    var compositeData = {};
+
+    function showCreateItemForm(existingItem) {
+        document.getElementById('createItemForm').style.display = 'block';
+        document.getElementById('existingCompositesSection').style.display = 'none';
+        document.getElementById('existingCompositesList').innerHTML = '';
+        compositeData = {};
+        if (existingItem) {
+            editingItemId = existingItem.id;
+            document.getElementById('itemFormTitle').textContent = 'Edit Item';
+            document.getElementById('saveItemBtn').textContent = 'Update Item';
+            document.getElementById('itemNameInput').value = existingItem.name || '';
+            document.getElementById('itemTypeInput').value = existingItem.item_type || 'Hat';
+            document.getElementById('itemPriceInput').value = existingItem.price || 0;
+            document.getElementById('itemDescInput').value = existingItem.description || '';
+            document.getElementById('itemImageInput').value = '';
+            document.getElementById('itemAvatarInput').value = '';
+            document.getElementById('itemHeadshotInput').value = '';
+            document.getElementById('itemLimitedInput').checked = existingItem.is_limited || false;
+            document.getElementById('itemLimitedUniqueInput').checked = existingItem.is_limited_unique || false;
+            document.getElementById('itemSerialCountInput').value = existingItem.serial_count || 50;
+            toggleLimitedUnique();
+            loadExistingComposites(existingItem.composite_map);
+        } else {
+            editingItemId = null;
+            document.getElementById('itemFormTitle').textContent = 'Create New Item';
+            document.getElementById('saveItemBtn').textContent = 'Save Item';
+            document.getElementById('itemNameInput').value = '';
+            document.getElementById('itemTypeInput').value = 'Hat';
+            document.getElementById('itemPriceInput').value = '';
+            document.getElementById('itemImageInput').value = '';
+            document.getElementById('itemAvatarInput').value = '';
+            document.getElementById('itemHeadshotInput').value = '';
+            document.getElementById('itemDescInput').value = '';
+            document.getElementById('itemLimitedInput').checked = false;
+            document.getElementById('itemLimitedUniqueInput').checked = false;
+            document.getElementById('itemSerialCountInput').value = 50;
+            toggleLimitedUnique();
+            loadExistingComposites();
+        }
+    }
+
+    async function loadExistingComposites(existingCompositeMap) {
+        try {
+            var items = await getItems();
+            var container = document.getElementById('existingCompositesList');
+            var section = document.getElementById('existingCompositesSection');
+            container.innerHTML = '';
+            if (!items || items.length === 0) { section.style.display = 'none'; return; }
+            var filtered = editingItemId ? items.filter(function(i) { return i.id !== editingItemId; }) : items;
+            if (filtered.length === 0) { section.style.display = 'none'; return; }
+            section.style.display = '';
+
+            var existingMap = {};
+            if (existingCompositeMap) {
+                try {
+                    var parsed = typeof existingCompositeMap === 'string' ? JSON.parse(existingCompositeMap) : existingCompositeMap;
+                    if (parsed && parsed.length) {
+                        parsed.forEach(function(e) { existingMap[e.item_id] = e; });
+                    }
+                } catch(e) {}
+            }
+
+            filtered.forEach(function(item) {
+                var existing = existingMap[item.id];
+                var div = document.createElement('div');
+                div.style.cssText = 'padding:8px 0;border-bottom:1px solid #eee;margin-bottom:4px;';
+                var label = editingItemId ? (esc(item.name) + ' + this item') : (esc(item.name) + ' + new item');
+                if (existing) {
+                    compositeData[item.id] = compositeData[item.id] || {};
+                    if (existing.avatar_url) compositeData[item.id].existingAvatarUrl = existing.avatar_url;
+                    if (existing.headshot_url) compositeData[item.id].existingHeadshotUrl = existing.headshot_url;
+                }
+                var existingHtml = '';
+                if (existing && existing.avatar_url) {
+                    existingHtml += '<div style="display:flex;gap:6px;align-items:center;margin-top:4px;padding-left:30px;font-size:11px;color:var(--text-color-tertiary);"><span>Current full: <img src="' + esc(existing.avatar_url) + '" height="20" style="border-radius:0;"/></span>';
+                    if (existing.headshot_url) existingHtml += '<span>Current headshot: <img src="' + esc(existing.headshot_url) + '" height="20" style="border-radius:50%;"/></span></div>';
+                }
+                div.innerHTML = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+                    + '<img src="' + esc(item.image_url || 'images/placeholder.png') + '" height="24" width="24" style="border-radius:0;object-fit:cover;"/>'
+                    + '<span style="font-size:12px;font-weight:700;">' + label + '</span>'
+                    + '</div>'
+                    + existingHtml
+                    + '<div style="display:flex;gap:12px;flex-wrap:wrap;padding-left:30px;">'
+                    + '<label style="font-size:12px;font-weight:600;"><span style="display:block;margin-bottom:2px;">Full avatar:</span><input type="file" accept="image/*" onchange="compositeData[\'' + esc(item.id) + '\']=compositeData[\'' + esc(item.id) + '\']||{};compositeData[\'' + esc(item.id) + '\'].avatarFile=this.files[0]"/></label>'
+                    + '<label style="font-size:12px;font-weight:600;"><span style="display:block;margin-bottom:2px;">Headshot:</span><input type="file" accept="image/*" onchange="compositeData[\'' + esc(item.id) + '\']=compositeData[\'' + esc(item.id) + '\']||{};compositeData[\'' + esc(item.id) + '\'].headshotFile=this.files[0]"/></label>'
+                    + '</div>';
+                container.appendChild(div);
+            });
+        } catch(e) { console.error('Load composites error:', e); }
+    }
+
+    function toggleLimitedUnique() {
+        var isUnique = document.getElementById('itemLimitedUniqueInput').checked;
+        document.getElementById('serialCountLabel').style.display = isUnique ? '' : 'none';
+        if (isUnique) document.getElementById('itemLimitedInput').checked = true;
+    }
+
+    async function saveNewItem() {
+        var name = document.getElementById('itemNameInput').value.trim();
+        if (!name) { showNotification('Please enter an item name.', true); return; }
+        var type = document.getElementById('itemTypeInput').value;
+        var price = parseInt(document.getElementById('itemPriceInput').value) || 0;
+        var desc = document.getElementById('itemDescInput').value.trim();
+        var imageFile = document.getElementById('itemImageInput').files[0];
+        var avatarFile = document.getElementById('itemAvatarInput').files[0];
+        var headshotFile = document.getElementById('itemHeadshotInput').files[0];
+        try {
+            var data = { name: name, item_type: type, price: price, description: desc };
+            if (!editingItemId) data.creator_id = currentProfile ? currentProfile.id : null;
+            data.is_limited = document.getElementById('itemLimitedInput').checked || false;
+            data.is_limited_unique = document.getElementById('itemLimitedUniqueInput').checked || false;
+            data.serial_count = data.is_limited_unique ? (parseInt(document.getElementById('itemSerialCountInput').value) || 50) : 0;
+            data.remaining_count = data.is_limited_unique ? data.serial_count : 0;
+            if (imageFile) data.image_url = await uploadItemFile(imageFile, 'items');
+            if (avatarFile) data.avatar_url = await uploadItemFile(avatarFile, 'items');
+            if (headshotFile) data.headshot_url = await uploadItemFile(headshotFile, 'items');
+            var compositeMap = [];
+            for (var cid in compositeData) {
+                var entry = {};
+                entry.item_id = cid;
+                if (compositeData[cid].avatarFile) entry.avatar_url = await uploadItemFile(compositeData[cid].avatarFile, 'items');
+                else if (compositeData[cid].existingAvatarUrl) entry.avatar_url = compositeData[cid].existingAvatarUrl;
+                if (compositeData[cid].headshotFile) entry.headshot_url = await uploadItemFile(compositeData[cid].headshotFile, 'items');
+                else if (compositeData[cid].existingHeadshotUrl) entry.headshot_url = compositeData[cid].existingHeadshotUrl;
+                if (entry.avatar_url || entry.headshot_url) compositeMap.push(entry);
+            }
+            if (compositeMap.length > 0) data.composite_map = JSON.stringify(compositeMap);
+            if (editingItemId) {
+                await updateItem(editingItemId, data);
+                showNotification('Item updated successfully!');
+            } else {
+                await createItem(data);
+                showNotification('Item created successfully!');
+            }
+            document.getElementById('createItemForm').style.display = 'none';
+            loadItems();
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    async function loadItems() {
+        try {
+            var items = await getItems();
+            var tbody = document.getElementById('itemsTableBody');
+            var loading = document.getElementById('itemsLoading');
+            var table = document.getElementById('itemsTable');
+            loading.style.display = 'none';
+            if (!items || items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No items yet.</td></tr>';
+                return;
+            }
+            table.style.display = '';
+            tbody.innerHTML = '';
+            items.forEach(function(item) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + esc(item.item_number || '') + '</td>'
+                    + '<td><img src="' + esc(item.image_url || 'images/placeholder.png') + '" height="40" width="40" style="border-radius:0;object-fit:cover;"/></td>'
+                    + '<td><strong>' + esc(item.name) + '</strong></td>'
+                    + '<td>' + esc(item.item_type || item.type || '') + '</td>'
+                    + '<td>' + (item.is_limited_unique ? 'LimitedU' : item.is_limited ? 'Limited' : '-') + '</td>'
+                    + '<td>' + (item.price || 0) + '</td>'
+                    + '<td>' + (item.sales || 0) + '</td>'
+                    + '<td>'
+                    + '<button class="btn-admin btn-admin-primary" data-item="' + encodeURIComponent(JSON.stringify(item)) + '" onclick="var d=JSON.parse(decodeURIComponent(this.getAttribute(\'data-item\')));showCreateItemForm(d)" style="background:var(--primary-color);margin-right:4px;">Edit</button>'
+                    + '<button class="btn-admin btn-admin-muted" onclick="showConfirm(\'Delete this item? This cannot be undone.\', async function() { try { await deleteItem(\'' + esc(item.id) + '\'); loadItems(); showNotification(\'Item deleted.\'); } catch(e) { showNotification(e.message || \'Delete failed.\'); loadItems(); } })">Delete</button>'
+                    + '</td>';
+                tbody.appendChild(tr);
+            });
+        } catch(e) { console.error('Load items error:', e); }
+    }
+
+    document.getElementById('userSearchInput').addEventListener('input', function() {
+        var q = this.value.toLowerCase();
+        var rows = document.querySelectorAll('#usersTableBody tr');
+        rows.forEach(function(r) {
+            r.style.display = r.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none';
+        });
+    });
+
+    var editingGameId = null;
+
+    function showCreateGameForm(existingGame) {
+        document.getElementById('createGameForm').style.display = 'block';
+        if (existingGame) {
+            editingGameId = existingGame.id;
+            document.getElementById('gameFormTitle').textContent = 'Edit Game';
+            document.getElementById('saveGameBtn').textContent = 'Update Game';
+            document.getElementById('gameTitleInput').value = existingGame.title || '';
+            document.getElementById('gameGenreInput').value = existingGame.genre || '';
+            document.getElementById('gameYearInput').value = existingGame.year || '2017';
+            document.getElementById('gameMaxPlayersInput').value = existingGame.max_players || 99;
+            document.getElementById('gameGearInput').value = existingGame.allowed_gear || 'None';
+            document.getElementById('gameDescInput').value = existingGame.description || '';
+            document.getElementById('gameThumbInput').value = '';
+            document.getElementById('gameThumbBigInput').value = '';
+        } else {
+            editingGameId = null;
+            document.getElementById('gameFormTitle').textContent = 'Create New Game';
+            document.getElementById('saveGameBtn').textContent = 'Save Game';
+            document.getElementById('gameTitleInput').value = '';
+            document.getElementById('gameGenreInput').value = '';
+            document.getElementById('gameYearInput').value = '2017';
+            document.getElementById('gameMaxPlayersInput').value = '99';
+            document.getElementById('gameGearInput').value = 'None';
+            document.getElementById('gameDescInput').value = '';
+            document.getElementById('gameThumbInput').value = '';
+            document.getElementById('gameThumbBigInput').value = '';
+        }
+    }
+
+    async function saveNewGame() {
+        var title = document.getElementById('gameTitleInput').value.trim();
+        if (!title) { showNotification('Please enter a game title.', true); return; }
+        var genre = document.getElementById('gameGenreInput').value;
+        var year = document.getElementById('gameYearInput').value.trim() || '2017';
+        var maxPlayers = parseInt(document.getElementById('gameMaxPlayersInput').value) || 99;
+        var gear = document.getElementById('gameGearInput').value.trim() || 'None';
+        var desc = document.getElementById('gameDescInput').value.trim();
+        try {
+            var data = { title: title, genre: genre, year: year, max_players: maxPlayers, allowed_gear: gear, description: desc };
+            var thumbFile = document.getElementById('gameThumbInput').files[0];
+            if (thumbFile) data.thumbnail = await uploadGameThumbnail(thumbFile);
+            var thumbBigFile = document.getElementById('gameThumbBigInput').files[0];
+            if (thumbBigFile) data.thumbnail_big = await uploadGameThumbnail(thumbBigFile);
+            if (editingGameId) {
+                data.updated_at = new Date().toISOString();
+                await updateGame(editingGameId, data);
+                showNotification('Game updated successfully!');
+            } else {
+                data.creator_id = currentProfile.id;
+                await createGame(data);
+                showNotification('Game created successfully!');
+            }
+            document.getElementById('createGameForm').style.display = 'none';
+            loadGamesData();
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    async function loadGamesData() {
+        try {
+            var games = await getGames();
+            var tbody = document.getElementById('gamesTableBody');
+            var loading = document.getElementById('gamesLoading');
+            var table = document.getElementById('gamesTable');
+            loading.style.display = 'none';
+            if (!games || games.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No games yet.</td></tr>';
+                return;
+            }
+            table.style.display = '';
+            tbody.innerHTML = '';
+            for (var i = 0; i < games.length; i++) {
+                var g = games[i];
+                var creatorName = (typeof g.creator === 'object' && g.creator) ? esc(g.creator.username) : '—';
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td style="font-size:11px;">' + esc(g.id || '') + '</td>'
+                    + '<td><img src="' + esc(g.thumbnail || 'images/placeholder.png') + '" height="40" width="40" style="border-radius:0;object-fit:cover;"/></td>'
+                    + '<td><strong>' + esc(g.title) + '</strong></td>'
+                    + '<td>' + creatorName + '</td>'
+                    + '<td>' + esc(g.genre || '—') + '</td>'
+                    + '<td>' + (g.playing || 0) + '</td>'
+                    + '<td>' + (g.visits || 0) + '</td>'
+                    + '<td>'
+                    + '<button class="btn-admin btn-admin-primary" onclick="editGame(' + esc(g.id) + ')" style="margin-right:4px;">Edit</button>'
+                    + '<button class="btn-admin btn-admin-muted" onclick="showConfirm(\'Delete this game? This cannot be undone.\', function() { deleteGame(' + esc(g.id) + '); loadGamesData(); showNotification(\'Game deleted.\'); })">Delete</button>'
+                    + '</td>';
+                tbody.appendChild(tr);
+            }
+        } catch(e) { console.error('Load games error:', e); }
+    }
+
+    async function editGame(gameId) {
+        try {
+            var games = await getGames();
+            var game = null;
+            for (var i = 0; i < games.length; i++) {
+                if (games[i].id == gameId) { game = games[i]; break; }
+            }
+            if (!game) { showNotification('Game not found.', true); return; }
+            showCreateGameForm(game);
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    async function loadForumAdmin() {
+        var loading = document.getElementById('forumAdminLoading');
+        var table = document.getElementById('forumAdminTable');
+        var tbody = document.getElementById('forumAdminBody');
+        if (!loading || !tbody) return;
+        loading.style.display = 'block';
+        table.style.display = 'none';
+        try {
+            var threads = await adminGetForumThreads();
+            loading.style.display = 'none';
+            table.style.display = '';
+            if (!threads || threads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-color-tertiary);">No forum threads.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            threads.forEach(function(t) {
+                var tr = document.createElement('tr');
+                var boardName = (t.subcategory && t.subcategory.name) ? esc(t.subcategory.name) : '—';
+                var authorName = (t.author && t.author.username) ? esc(t.author.username) : '—';
+                tr.innerHTML = '<td>' + esc(t.id) + '</td>'
+                    + '<td><a href="forum-thread.html?id=' + esc(t.id) + '" target="_blank">' + esc(t.title) + '</a></td>'
+                    + '<td>' + boardName + '</td>'
+                    + '<td>' + authorName + '</td>'
+                    + '<td>' + (t.is_pinned ? 'Yes' : 'No') + '</td>'
+                    + '<td>' + (t.is_locked ? 'Yes' : 'No') + '</td>'
+                    + '<td>'
+                    + '<button class="btn-admin btn-admin-primary" onclick="toggleForumPin(' + esc(t.id) + ',' + !t.is_pinned + ')" style="margin-right:4px;">' + (t.is_pinned ? 'Unpin' : 'Pin') + '</button>'
+                    + '<button class="btn-admin btn-admin-primary" onclick="toggleForumLock(' + esc(t.id) + ',' + !t.is_locked + ')" style="margin-right:4px;">' + (t.is_locked ? 'Unlock' : 'Lock') + '</button>'
+                    + '<button class="btn-admin btn-admin-danger" onclick="deleteForumThreadAdmin(' + esc(t.id) + ')">Delete</button>'
+                    + '</td>';
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            loading.style.display = 'none';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#d86868;">Error loading forum. Run supabase-admin-alert-forum.sql</td></tr>';
+            table.style.display = '';
+        }
+    }
+
+    async function toggleForumPin(threadId, pin) {
+        try {
+            await adminUpdateForumThread(threadId, { is_pinned: pin });
+            showNotification(pin ? 'Thread pinned.' : 'Thread unpinned.');
+            loadForumAdmin();
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    async function toggleForumLock(threadId, lock) {
+        try {
+            await adminUpdateForumThread(threadId, { is_locked: lock });
+            showNotification(lock ? 'Thread locked.' : 'Thread unlocked.');
+            loadForumAdmin();
+        } catch(e) { showNotification('Error: ' + e.message, true); }
+    }
+
+    function deleteForumThreadAdmin(threadId) {
+        showConfirm('Delete this thread and all posts? This cannot be undone.', function() {
+            adminDeleteForumThread(threadId).then(function() {
+                showNotification('Thread deleted.');
+                loadForumAdmin();
+            }).catch(function(e) { showNotification('Error: ' + e.message, true); });
+        });
+    }
+
+    var checkAdmin = setInterval(function() {
+        if (currentProfile) { clearInterval(checkAdmin); loadAdminData(); }
+    }, 100);
+    </script>
+</body>
+</html>
+
