@@ -174,7 +174,7 @@
             this.disabled = true; this.textContent = 'Logging in...';
             try {
                 await loginUser(username.toLowerCase() + '@corvixz.com', password);
-                window.location.href = 'home.html';
+                window.location.href = '/home/';
             } catch (e) {
                 loginError.textContent = e.message || 'Invalid username or password.';
                 loginError.style.display = '';

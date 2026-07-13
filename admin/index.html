@@ -1018,7 +1018,7 @@
                 var boardName = (t.subcategory && t.subcategory.name) ? esc(t.subcategory.name) : '—';
                 var authorName = (t.author && t.author.username) ? esc(t.author.username) : '—';
                 tr.innerHTML = '<td>' + esc(t.id) + '</td>'
-                    + '<td><a href="forum-thread.html?id=' + esc(t.id) + '" target="_blank">' + esc(t.title) + '</a></td>'
+                    + '<td><a href="/forum/thread/"' + esc(t.id) + '" target="_blank">' + esc(t.title) + '</a></td>'
                     + '<td>' + boardName + '</td>'
                     + '<td>' + authorName + '</td>'
                     + '<td>' + (t.is_pinned ? 'Yes' : 'No') + '</td>'

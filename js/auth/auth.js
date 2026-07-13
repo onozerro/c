@@ -87,7 +87,7 @@ async function logoutUser() {
         await fetch(AUTH_URL + '/logout', { method: 'POST', headers: authHeaders() });
     } catch(e) {}
     clearSession();
-    window.location.href = 'index.html';
+    window.location.href = '/';
 }
 
 async function getProfile(userId) {

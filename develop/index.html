@@ -166,7 +166,7 @@
 
     function renderGamesContent() {
         var html = '<div class="row"><div class="col-12">';
-        html += '<a href="configure-game.html?new=1" class="buyButton-0-2-24 dev-create-btn" style="display:inline-block;text-decoration:none;">Create New Game</a>';
+        html += '<a href="/configure-game/?new="1" class="buyButton-0-2-24 dev-create-btn" style="display:inline-block;text-decoration:none;">Create New Game</a>';
         html += '<h2 class="mt-2 dev-subtitle">Games</h2>';
         if (!myGames.length) {
             html += '<p class="mt-4 mb-0">You haven\'t created any games.</p>';
@@ -260,7 +260,7 @@
                 html += '<div class="row dev-asset-row align-items-start">';
                 html += '<div class="col-2"><img class="dev-asset-thumb" src="' + escDev(ad.image_url) + '" alt=""/></div>';
                 html += '<div class="col-9 ps-0">';
-                html += '<p class="mb-0"><a href="develop.html?View=101" class="dev-asset-link">' + escDev(adName) + '</a></p>';
+                html += '<p class="mb-0"><a href="/develop/?View="101" class="dev-asset-link">' + escDev(adName) + '</a></p>';
                 html += '<p class="mb-0">' + escDev(adName) + ' (for <a href="' + target.url + '" class="dev-asset-link">' + escDev(target.name) + '</a>)</p>';
                 html += '<div class="row dev-ad-stats-row">';
                 html += adStatCol('Impressions', '0') + adStatCol('Clicks', '0') + adStatCol('CTR', '0.00%') + adStatCol('Bid', bidLast.toLocaleString());

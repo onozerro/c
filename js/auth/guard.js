@@ -1,8 +1,10 @@
 var currentUser = null;
 var currentProfile = null;
-var PUBLIC_PAGES = ['', 'home', 'about', 'ban', '404', 'login', 'register'];
+var PUBLIC_PAGES = ['landing', 'about', 'ban', '404', 'login', 'register'];
 
 function getPageName() {
+    var path = window.location.pathname;
+    if (path === '/' || path === '') return 'landing';
     var parts = window.location.pathname.split('/').filter(Boolean);
     return parts[0] || 'home';
 }
@@ -21,7 +23,7 @@ async function initAuth() {
         var session = getSession();
         if (!session) {
             var page = getPageName();
-            if (PUBLIC_PAGES.indexOf(page) === -1) { window.location.href = '/home/'; return; }
+            if (PUBLIC_PAGES.indexOf(page) === -1) { window.location.href = '/'; return; }
             return;
         }
 
@@ -50,7 +52,7 @@ async function initAuth() {
         }
 
         var page = getPageName();
-        if (PUBLIC_PAGES.indexOf(page) !== -1 && page !== '404') {
+        if (PUBLIC_PAGES.indexOf(page) !== -1 && page !== '404' && page !== 'home') {
             window.location.href = '/home/';
         }
     } catch(e) {

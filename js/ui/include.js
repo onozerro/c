@@ -151,7 +151,7 @@ window.refreshNotificationBadges = async function() {
 
 function setActiveNavLink() {
     var path = window.location.pathname.split('/').filter(Boolean)[0] || 'home';
-    var map = { 'games.html': 'Games', 'catalog.html': 'Catalog', 'develop.html': 'Develop', 'forum.html': 'Forum' };
+    var map = { 'games': 'Games', 'catalog': 'Catalog', 'develop': 'Develop', 'forum': 'Forum' };
     var linkText = map[path];
     if (linkText) {
         var links = document.querySelectorAll('.nav-links a');
@@ -181,8 +181,8 @@ function loadComponent(id, url, fallback) {
         });
 }
 
-loadComponent('navbar-placeholder', 'navbar.html', INLINE_NAVBAR);
-loadComponent('footer-placeholder', 'footer.html', INLINE_FOOTER);
+loadComponent('navbar-placeholder', '/navbar.html', INLINE_NAVBAR);
+loadComponent('footer-placeholder', '/footer.html', INLINE_FOOTER);
 
 function loadSiteAlert() {
     var STORAGE_KEY = 'crvx_alert1';
@@ -271,7 +271,7 @@ window.updateSidebarProfile = function() {
     var un = document.getElementById('sidebarUsername');
     var sp = document.getElementById('sidebarProfile');
     if (un) un.textContent = currentProfile.display_name || currentProfile.username || 'User';
-    if (sp && currentProfile.user_number) sp.href = 'profile.html?id=' + currentProfile.user_number;
+    if (sp && currentProfile.user_number) sp.href = '/profile/' + currentProfile.user_number;
 }
 var sideCheck = setInterval(function() { if (currentProfile && document.getElementById('sidebarUsername')) { clearInterval(sideCheck); updateSidebarProfile(); } }, 100);
 

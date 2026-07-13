@@ -210,8 +210,8 @@ async function loadRandomAd() {
 
 function getAdClickUrl(ad) {
     if (ad.click_url) return ad.click_url;
-    if (ad.target_type === 'game' && ad.target_id) return 'game-page.html?id=' + ad.target_id;
-    if (ad.target_type === 'group' && ad.target_id) return 'groups.html?gid=' + ad.target_id;
+    if (ad.target_type === 'game' && ad.target_id) return '/game/' + ad.target_id;
+    if (ad.target_type === 'group' && ad.target_id) return '/groups/' + ad.target_id;
     return '#';
 }
 
@@ -304,9 +304,9 @@ async function loadRectangleAd() {
 }
 
 function loadPageAds() {
-    var path = window.location.pathname.split('/').pop() || 'home.html';
-    if (path === 'home.html') loadSkyscraperAds();
-    else if (path === 'games.html') { loadRandomAd(); loadRectangleAd(); }
+    var path = window.location.pathname.split('/').filter(Boolean)[0] || 'home';
+    if (path === 'home') loadSkyscraperAds();
+    else if (path === 'games') { loadRandomAd(); loadRectangleAd(); }
     else loadRandomAd();
 }
 

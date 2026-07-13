@@ -66,7 +66,7 @@
                     var sub = subs[j];
                     var stats = await getForumStats(sub.id);
                     html += '<tr class="forum-body-row">';
-                    html += '<td><a href="forum-view.html?sub=' + sub.id + '" class="forum-sub-link">';
+                    html += '<td><a href="/forum/view/?sub="' + sub.id + '" class="forum-sub-link">';
                     html += '<p class="mb-0 fw-bold mt-2">' + esc(sub.name) + '</p>';
                     html += '<p class="mb-2">' + esc(sub.description) + '</p></a></td>';
                     html += '<td class="text-center">' + stats.threadCount + '</td>';
